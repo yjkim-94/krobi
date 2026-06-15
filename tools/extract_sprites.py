@@ -24,7 +24,7 @@ from PIL import Image
 def build_foreground_mask(img, key, tol):
     """전경(캐릭터) 픽셀 = True 인 불리언 마스크 반환."""
     rgba = np.asarray(img.convert("RGBA"))
-    rgb = rgba[..., :3].astype(np.int16)
+    rgb = rgba[..., :3].astype(np.int32)  # int16이면 제곱 시 오버플로 → nan
     alpha = rgba[..., 3]
 
     # 이미 의미있는 투명도가 있으면 그걸 우선 사용
@@ -36,7 +36,7 @@ def build_foreground_mask(img, key, tol):
         corners = np.stack([rgb[0, 0], rgb[0, -1], rgb[-1, 0], rgb[-1, -1]])
         key_rgb = np.median(corners, axis=0)
     else:
-        key_rgb = np.array([int(key[i:i + 2], 16) for i in (0, 2, 4)], dtype=np.int16)
+        key_rgb = np.array([int(key[i:i + 2], 16) for i in (0, 2, 4)], dtype=np.int32)
 
     dist = np.sqrt(((rgb - key_rgb) ** 2).sum(axis=2))
     return dist > tol  # 배경에서 멀면 전경
