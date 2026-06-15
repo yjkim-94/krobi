@@ -1,0 +1,11 @@
+{
+  "id": "krobi",
+  "frameSize": 64,
+  "displayScale": 2,
+  "animations": {
+    "idle":  { "frames": ["idle_0", "idle_1", "idle_0", "idle_2"], "fps": 4, "loop": true },
+    "eat":   { "frames": ["eat_0", "eat_1", "eat_2", "eat_3"], "fps": 8, "loop": false, "then": "idle" },
+    "happy": { "frames": ["happy_0", "happy_1", "happy_2"], "fps": 8, "loop": false, "then": "idle" },
+    "sad":   { "frames": ["sad_0", "sad_1"], "fps": 2, "loop": true }
+  }
+}
