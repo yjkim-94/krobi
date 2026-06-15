@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { load, type Store } from "@tauri-apps/plugin-store";
 import "./App.css";
+import manifest from "./assets/pets/krobi/manifest.json";
+import type { AnimationName, PetManifest } from "./pet/types";
+import { baseAnimation } from "./pet/animation";
+import { krobiFrameUrls } from "./pet/frameUrls";
+import { usePetAnimation } from "./pet/usePetAnimation";
+import { Pet } from "./pet/Pet";
+
+const PET = manifest as PetManifest;
 
 const STORE_FILE = "krobi_data.json";
 const VERSION = "1.0.0";
@@ -33,6 +41,7 @@ function defaultPet(): Pet {
 function App() {
   const storeRef = useRef<Store | null>(null);
   const [pet, setPet] = useState<Pet | null>(null);
+  const [oneShot, setOneShot] = useState<AnimationName | null>(null);
 
   // 보강 #7: set 후 반드시 save() 해야 디스크 반영
   async function persist(next: Pet) {
@@ -100,6 +109,7 @@ function App() {
   function feed(e: React.MouseEvent) {
     // 보강 #5: 버튼은 드래그 막고 동작 실행
     e.stopPropagation();
+    setOneShot("eat");
     setPet((prev) => {
       if (!prev) return prev;
       const next: Pet = {
@@ -117,6 +127,7 @@ function App() {
 
   function clean(e: React.MouseEvent) {
     e.stopPropagation();
+    setOneShot("happy");
     setPet((prev) => {
       if (!prev) return prev;
       const next: Pet = {
@@ -132,6 +143,14 @@ function App() {
     });
   }
 
+  // 애니메이션: 기본 상태(idle/sad)는 스탯으로 결정, oneShot(eat/happy)은 1회 재생
+  const base: AnimationName = pet
+    ? baseAnimation(pet.status.hunger, pet.status.cleanliness)
+    : "idle";
+  const frameUrl = usePetAnimation(PET, krobiFrameUrls, base, oneShot, () =>
+    setOneShot(null),
+  );
+
   if (!pet) return null;
 
   // 보강 #6: 표시만 반올림
@@ -141,16 +160,14 @@ function App() {
   return (
     <div
       data-tauri-drag-region
-      className="flex h-screen w-screen flex-col items-center justify-between rounded-2xl bg-sky-100/80 p-3 backdrop-blur-sm"
+      className="flex h-screen w-screen flex-col items-center justify-between rounded-2xl bg-sky-100/80 p-2 backdrop-blur-sm"
     >
       {/* 펫 */}
       <div
         data-tauri-drag-region
         className="flex flex-1 items-center justify-center"
       >
-        <span className="animate-bounce text-5xl" data-tauri-drag-region>
-          🐤
-        </span>
+        <Pet frameUrl={frameUrl} size={PET.frameSize * PET.displayScale} />
       </div>
 
       {/* 상태 바 */}
