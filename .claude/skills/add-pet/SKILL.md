@@ -38,6 +38,14 @@ stage1 (유년기, no branch)
   `maker` forges/builds/shapes, `sage` illuminates/refines/knows, `wild` runs untamed/fierce.
   No genre jumps (a lava slime never becomes a machine). Example (krombi): maker →
   마그마 대장장이→용암 골렘, sage → 도깨비불→지혜의 등불 정령, wild → 불꽃 야수→화염 정령.
+- **Stage-intensity cadence:** the two evolutions are NOT equal steps.
+  - **stage2 = moderate** — clearly still the stage1 body, with added ornament/appendages and
+    the branch's signature prop (e.g. the blob grows stubby arms + a hammer). Gradual.
+  - **stage3 = dramatic** — the climactic FINAL form: a substantially TRANSFORMED, larger,
+    more imposing silhouette with new signature structures (not just a scaled-up stage2),
+    while strictly preserving the species' core identity — same element/material, **same
+    palette**, and the branch's signature prop. Push the silhouette change hard here; only the
+    no-genre-jump and identity/palette locks constrain it.
 - Authoring all 7 forms is the full job; a single playthrough only shows
   stage1 → one stage2 → one stage3.
 
@@ -111,6 +119,25 @@ sad) in a single image =
 (all verbatim) + the four row blocks (idle, eat, the body-form happy, sad) + the closing
 `**Never** include` line** (blocks in `references/animation-prompts.md`), with the form's
 concept substituted into the Style Bible's `**Creature**` line.
+
+**Writing the `**Creature**` line per stage** (this is where the stage-intensity cadence is
+enforced):
+- **stage2** — describe the stage1 body explicitly, then add the branch's ornament/appendages
+  + signature prop. Keep it recognizable as stage1 grown a little.
+- **stage3** — describe a DRAMATIC final form: a bigger, transformed, more imposing silhouette
+  with new signature structures (push the silhouette change). Do NOT write "a slightly bigger
+  stage2".
+- **Palette lock (every evolution):** image models follow the attached reference's colors more
+  than prose, but they still drift — so restate the species' exact palette in the `**Creature**`
+  line as a hard constraint and name the wrong-direction colors to avoid (e.g. for a lava
+  creature: "hot brick-red/ember lava body with a charcoal-basalt crust — NOT green, mossy,
+  tan, or grey stone"). The dramatic stage3 change is in SILHOUETTE/structure, never in element
+  or palette.
+- **Signature prop:** if the branch has a defining prop (maker's hammer, etc.), mark it
+  MANDATORY in every frame so a re-roll can't drop it.
+- Some models (e.g. Gemini) stamp a corner logo/watermark; the closing `**Never** include`
+  line already forbids `logos, watermarks, signatures`. A corner mark outside the creature
+  silhouette is usually dropped by the per-frame content crop anyway.
 
 **happy is body-form specific** — do NOT use a single fixed hop (a machine must not jump
 like a slime). Map the form's archetype/branch to a body-form file, `Read` only that one,

@@ -43,9 +43,9 @@ keying), with no baked ground shadow.
 
 **Creature** — <<<USER CONCEPT HERE>>>
 
-**Never** include: text, UI, multiple creatures per frame, black keyline outlines, big
-anime/chibi eyes, gradient/airbrush shading, realistic/3D shading, neon colors, or a baked
-ground shadow.
+**Never** include: text, UI, logos, watermarks, signatures, multiple creatures per frame,
+black keyline outlines, big anime/chibi eyes, gradient/airbrush shading, realistic/3D shading,
+neon colors, or a baked ground shadow.
 ```
 
 Reference line (always include when attaching a previous frame/stage):
