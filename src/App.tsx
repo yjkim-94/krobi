@@ -5,64 +5,42 @@ import { LogicalSize } from "@tauri-apps/api/dpi";
 import { Menu } from "@tauri-apps/api/menu";
 import "./App.css";
 import manifest from "./assets/pets/krombi/stage1/manifest.json";
-import type { AnimationName, PetManifest } from "./pet/types";
+import krombiSpecies from "./assets/pets/krombi/species.json";
+import type { AnimationName, PetManifest, SpeciesDef } from "./pet/types";
 import { baseAnimation } from "./pet/animation";
 import { krombiSheetUrl } from "./pet/frameUrls";
 import { usePetAnimation } from "./pet/usePetAnimation";
 import { Pet } from "./pet/Pet";
 import { useWindowDrag } from "./pet/useWindowDrag";
+import { useActiveAppTracker } from "./pet/useActiveAppTracker";
 import { loadImage, measureBounds } from "./pet/sheetImage";
 import { fitWindowSize, fitScale, boxSize, type Box } from "./pet/contentBounds";
+import { formAppearance } from "./pet/formAppearance";
+import { StatusPanel } from "./ui/StatusPanel";
 import { ResizeOverlay } from "./ui/ResizeOverlay";
+import {
+  type PetData,
+  type TendencyKey,
+  migrate,
+  applyTick,
+  canEvolve,
+  applyEvolution,
+} from "./pet/petState";
 
 const PET = manifest as PetManifest;
+const SPECIES = krombiSpecies as SpeciesDef;
 const STORE_FILE = "krobi_data.json";
-const VERSION = "1.0.0";
+const VERSION = "2.0.0";
 const HUNGER_RATE = 1; // 포만감: 분당 -1
+const EXP_GAIN = 10; // 경험치: 분당 +10 (잠정)
+const TENDENCY_GAIN = 5; // 활성 앱 1회 감지당 +5 (잠정)
 const TICK_MS = 60_000;
 const MARGIN = 12; // 펫 주변 여백(px)
+const PANEL_H = 96; // 펫상태 패널을 위해 창에 더할 높이(px)
 
-type Status = { satiety: number };
-type PetData = {
-  name: string;
-  level: number;
-  status: Status;
-  last_updated: string;
-};
 type WindowSize = { width: number; height: number };
 
-const clampMin0 = (v: number) => Math.max(0, v);
 const clampMax100 = (v: number) => Math.min(100, v);
-
-function defaultPet(): PetData {
-  return {
-    name: "크로비",
-    level: 1,
-    status: { satiety: 100 },
-    last_updated: new Date().toISOString(),
-  };
-}
-
-// 구버전 저장(hunger/cleanliness)에서 satiety로 마이그레이션.
-function migrate(raw: unknown): PetData {
-  const base = defaultPet();
-  if (!raw || typeof raw !== "object") return base;
-  const r = raw as Record<string, unknown>;
-  const status = (r.status ?? {}) as Record<string, unknown>;
-  const satiety =
-    typeof status.satiety === "number"
-      ? status.satiety
-      : typeof status.hunger === "number"
-        ? status.hunger
-        : 100;
-  return {
-    name: typeof r.name === "string" ? r.name : base.name,
-    level: typeof r.level === "number" ? r.level : base.level,
-    status: { satiety },
-    last_updated:
-      typeof r.last_updated === "string" ? r.last_updated : base.last_updated,
-  };
-}
 
 function App() {
   const storeRef = useRef<Store | null>(null);
@@ -72,6 +50,8 @@ function App() {
   const [box, setBox] = useState<Box | null>(null);
   const [inner, setInner] = useState({ w: window.innerWidth, h: window.innerHeight });
   const [resizing, setResizing] = useState(false);
+  const [showStatus, setShowStatus] = useState(false);
+  const baseHeightRef = useRef<number | null>(null); // 패널 펼치기 전 창 높이
 
   async function persistPet(next: PetData) {
     const store = storeRef.current;
@@ -81,7 +61,7 @@ function App() {
     await store.save();
   }
 
-  // 펫 데이터 로드 + 오프라인 보정 + 감소 틱.
+  // 펫 데이터 로드 + 오프라인 보정 + 감소/증가 틱.
   useEffect(() => {
     let intervalId: number | undefined;
     (async () => {
@@ -92,12 +72,8 @@ function App() {
       const now = Date.now();
       const last = new Date(current.last_updated).getTime();
       const elapsedMin = Math.max(0, Math.floor((now - last) / 60_000));
-      if (elapsedMin > 0) {
-        current = {
-          ...current,
-          status: { satiety: clampMin0(current.status.satiety - elapsedMin * HUNGER_RATE) },
-          last_updated: new Date(now).toISOString(),
-        };
+      for (let i = 0; i < elapsedMin; i++) {
+        current = applyTick(current, { satietyRate: HUNGER_RATE, expGain: EXP_GAIN });
       }
       await persistPet(current);
       setPet(current);
@@ -105,11 +81,7 @@ function App() {
       intervalId = window.setInterval(() => {
         setPet((prev) => {
           if (!prev) return prev;
-          const next: PetData = {
-            ...prev,
-            status: { satiety: clampMin0(prev.status.satiety - HUNGER_RATE) },
-            last_updated: new Date().toISOString(),
-          };
+          const next = applyTick(prev, { satietyRate: HUNGER_RATE, expGain: EXP_GAIN });
           void persistPet(next);
           return next;
         });
@@ -120,7 +92,28 @@ function App() {
     };
   }, []);
 
-  // 시트 로드 + 콘텐츠 경계 측정 + 초기 창 크기(저장값 우선, 없으면 자동맞춤).
+  // 활성 앱 감지 → 성향 게이지 증가(분류) 또는 미분류 카운트.
+  useActiveAppTracker((key: TendencyKey | null, appName: string) => {
+    setPet((prev) => {
+      if (!prev) return prev;
+      let next: PetData;
+      if (key) {
+        next = {
+          ...prev,
+          tendencies: { ...prev.tendencies, [key]: prev.tendencies[key] + TENDENCY_GAIN },
+        };
+      } else {
+        next = {
+          ...prev,
+          unknownApps: { ...prev.unknownApps, [appName]: (prev.unknownApps[appName] ?? 0) + 1 },
+        };
+      }
+      void persistPet(next);
+      return next;
+    });
+  });
+
+  // 시트 로드 + 콘텐츠 경계 측정 + 초기 창 크기.
   useEffect(() => {
     const cells = Object.values(PET.animations).flatMap((a) => a.frames);
     (async () => {
@@ -136,16 +129,28 @@ function App() {
     })().catch((e) => console.error("펫 시트 로드/측정 실패:", e));
   }, []);
 
-  // 창 크기 변화 추적(리사이즈 시 펫 스케일 갱신).
   useEffect(() => {
     const onResize = () => setInner({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // 펫상태 토글 시 창 높이를 패널만큼 늘렸다 복원.
+  async function toggleStatus() {
+    const win = getCurrentWindow();
+    if (!showStatus) {
+      baseHeightRef.current = window.innerHeight;
+      await win.setSize(new LogicalSize(window.innerWidth, window.innerHeight + PANEL_H));
+      setShowStatus(true);
+    } else {
+      const h = baseHeightRef.current ?? window.innerHeight - PANEL_H;
+      await win.setSize(new LogicalSize(window.innerWidth, h));
+      setShowStatus(false);
+    }
+  }
+
   const base: AnimationName = pet ? baseAnimation(pet.status.satiety) : "idle";
   const cell = usePetAnimation(PET, base, oneShot, () => setOneShot(null));
-
   const drag = useWindowDrag(() => setOneShot("happy"));
 
   function feed() {
@@ -162,11 +167,24 @@ function App() {
     });
   }
 
-  // 네이티브 OS 팝업 메뉴 — 투명 창 크기와 무관해 잘리지 않는다.
+  function evolve() {
+    setPet((prev) => {
+      if (!prev) return prev;
+      const next = applyEvolution(SPECIES, prev);
+      if (next === prev) return prev;
+      setOneShot("happy");
+      void persistPet(next);
+      return next;
+    });
+  }
+
   async function showMenu() {
+    const evolvable = pet ? canEvolve(SPECIES, pet.form, pet.exp) : false;
     const menu = await Menu.new({
       items: [
         { id: "feed", text: "밥주기", action: () => feed() },
+        { id: "status", text: showStatus ? "펫상태 숨기기" : "펫상태", action: () => void toggleStatus() },
+        { id: "evolve", text: "진화하기", enabled: evolvable, action: () => evolve() },
         { id: "resize", text: "크기 조절", action: () => setResizing(true) },
       ],
     });
@@ -184,9 +202,10 @@ function App() {
 
   if (!pet || !img || !box) return null;
 
-  // 콘텐츠 박스를 가용 영역(창 - 마진)에 비율 유지로 맞춤.
+  const appearance = formAppearance(pet.form);
   const cb = boxSize(box);
-  const scale = fitScale(cb, inner.w - MARGIN * 2, inner.h - MARGIN * 2);
+  const availH = inner.h - MARGIN * 2 - (showStatus ? PANEL_H : 0);
+  const scale = fitScale(cb, inner.w - MARGIN * 2, availH) * appearance.scale;
   const destW = Math.round(cb.w * scale);
   const destH = Math.round(cb.h * scale);
 
@@ -200,8 +219,10 @@ function App() {
         if (!resizing) void showMenu();
       }}
       className="relative flex h-screen w-screen items-center justify-center bg-transparent"
-      style={{ userSelect: "none" }}
+      style={{ userSelect: "none", paddingTop: showStatus ? PANEL_H : 0 }}
     >
+      {showStatus && <StatusPanel pet={pet} species={SPECIES} />}
+
       <Pet
         img={img}
         cell={cell}
@@ -210,6 +231,7 @@ function App() {
         box={box}
         destW={destW}
         destH={destH}
+        filter={appearance.filter}
       />
 
       {resizing && (
