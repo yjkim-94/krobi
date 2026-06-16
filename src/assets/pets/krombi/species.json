@@ -1,0 +1,14 @@
+{
+  "id": "krombi",
+  "archetype": "slime",
+  "branchWhitelist": ["beast", "machine", "morph"],
+  "forms": {
+    "stage1":         { "frameSize": 64 },
+    "stage2-beast":   { "frameSize": 64, "from": "stage1", "condition": { "stat": "coding",   "gte": 100 } },
+    "stage2-machine": { "frameSize": 64, "from": "stage1", "condition": { "stat": "research", "gte": 100 } },
+    "stage2-morph":   { "frameSize": 64, "from": "stage1", "condition": { "stat": "writing",  "gte": 100 } },
+    "stage3-beast":   { "frameSize": 96, "from": "stage2-beast",   "condition": { "stat": "coding",   "gte": 300 } },
+    "stage3-machine": { "frameSize": 96, "from": "stage2-machine", "condition": { "stat": "research", "gte": 300 } },
+    "stage3-morph":   { "frameSize": 96, "from": "stage2-morph",   "condition": { "stat": "writing",  "gte": 300 } }
+  }
+}

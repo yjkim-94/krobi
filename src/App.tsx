@@ -4,10 +4,10 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { Menu } from "@tauri-apps/api/menu";
 import "./App.css";
-import manifest from "./assets/pets/krobi/stage1/manifest.json";
+import manifest from "./assets/pets/krombi/stage1/manifest.json";
 import type { AnimationName, PetManifest } from "./pet/types";
 import { baseAnimation } from "./pet/animation";
-import { krobiSheetUrl } from "./pet/frameUrls";
+import { krombiSheetUrl } from "./pet/frameUrls";
 import { usePetAnimation } from "./pet/usePetAnimation";
 import { Pet } from "./pet/Pet";
 import { useWindowDrag } from "./pet/useWindowDrag";
@@ -125,7 +125,7 @@ function App() {
     const cells = Object.values(PET.animations).flatMap((a) => a.frames);
     (async () => {
       const store = storeRef.current ?? (await load(STORE_FILE, { defaults: {}, autoSave: false }));
-      const image = await loadImage(krobiSheetUrl);
+      const image = await loadImage(krombiSheetUrl);
       const measured = measureBounds(image, PET.frameSize, PET.columns, cells);
       setImg(image);
       setBox(measured);

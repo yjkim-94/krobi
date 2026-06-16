@@ -1,13 +1,13 @@
 {
   "species": [
     {
-      "id": "krobi",
-      "displayName": "크로비",
+      "id": "krombi",
+      "displayName": "크롬비",
       "archetype": "slime",
-      "concept": "둥근 청록 블롭 슬라임, 큰 눈, 작은 물방울 하이라이트",
-      "claimedMotifs": ["슬라임", "물방울", "왕관", "망토"],
-      "claimedColors": ["청록", "민트"],
-      "branches": ["humanoid", "spirit", "dragon"]
+      "concept": "용암 슬라임 — 갈라진 마그마 표면에 빛나는 붉은-주황 블롭, 작은 불씨 파편",
+      "claimedMotifs": ["용암", "마그마 균열", "불씨"],
+      "claimedColors": ["브릭 레드", "엠버 오렌지", "골드"],
+      "branches": ["beast", "machine", "morph"]
     }
   ]
 }

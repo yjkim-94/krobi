@@ -13,43 +13,46 @@ reference is always a previous frame/stage of the same creature (§2, §3).
 ## 1. Style Bible
 
 ```
-HD-2D pixel art, "simple HD" JRPG overworld-sprite style (Octopath Traveler / HD-2D lineage).
+Render the creature in HD-2D pixel art, in the "simple HD" JRPG overworld-sprite style
+(Octopath Traveler / HD-2D lineage). Follow every direction below exactly.
 
-[PROPORTIONS] Super-deformed mini-heroic build, ~2.5 heads tall for bipedal forms
-(sturdier and taller than 1:1 chibi; never realistic). Large head/main mass, short
-sturdy limbs, compact grounded stance. For non-bipedal creatures (blob, quadruped),
-a compact rounded mass with the same restraint.
-[FACE/EYES] Small simple eyes: 1-3 px dark almond/dot eyes with at most a single 1px
-highlight; expressive via shape and brow, NOT via size. Minimal few-pixel nose/mouth.
-NO big glossy anime/chibi eyes, no large white sclera.
-[OUTLINE] NO black keyline. Selective/colored outlining only: edge pixels are a darker
-shade of the adjacent LOCAL color (dark-teal edge on a teal body, dark-brown on brown
-cloth). The silhouette reads by value contrast against the background, not a black
-border. Separate interior forms with shading, not black lines.
-[PALETTE] Muted, desaturated, earthy palette: warm browns, creams, olive/forest greens,
-muted brick reds, slate blue-greys, soft golds. Low-to-medium saturation, slightly
-grayed and harmonious. Small coherent palette per creature (~12-24 colors total).
-NO neon, no pure-saturated primaries, no gradients/airbrush.
-[SHADING] Soft banded cel shading: per material a base tone + 1 shadow + occasional
-1 highlight (2-3 value steps). Consistent light from upper-left. Tiny specular dots
-only on metal/wet surfaces. NO smooth gradients, no 3D/realistic rendering.
-[PIXELS] Clean, deliberate pixel clusters; crisp readable edges; minimal hand
-antialiasing at key curves only; NO dithering, no stray/noisy pixels. Render LARGE
-but designed to read cleanly when downscaled to ~64 px.
-[CANVAS] Solid flat magenta #ff00ff background only (for keying), creature centered,
-no baked ground shadow.
+**Proportions** — Give it a super-deformed mini-heroic build, about 2.5 heads tall for
+bipedal forms (sturdier and taller than 1:1 chibi; never realistic): a large head/main mass,
+short sturdy limbs, and a compact grounded stance. For non-bipedal creatures (blob,
+quadruped), use a compact rounded mass with the same restraint.
+**Eyes & face** — Keep the eyes small and simple: 1-3px dark almond/dot eyes with at most a
+single 1px highlight. Express emotion through eye shape and brow, not size, and add only a
+minimal few-pixel nose/mouth. Do not draw big glossy anime/chibi eyes or large white sclera.
+**Outline** — Do not use any black keyline. Outline only selectively, with a darker shade of
+the adjacent local color (a dark-teal edge on a teal body, dark-brown on brown cloth). Let
+the silhouette read by value contrast against the background, not a black border, and
+separate interior forms with shading rather than black lines.
+**Palette** — Use a muted, desaturated, earthy palette: warm browns, creams, olive/forest
+greens, muted brick reds, slate blue-greys, soft golds. Keep saturation low-to-medium,
+slightly grayed and harmonious, with a small coherent palette per creature (~12-24 colors).
+Do not use neon, pure-saturated primaries, gradients, or airbrush.
+**Shading** — Use soft banded cel shading: per material, a base tone plus one shadow and an
+occasional single highlight (2-3 value steps), with light coming consistently from the
+upper-left. Add tiny specular dots only on metal or wet surfaces. Do not use smooth gradients
+or 3D/realistic rendering.
+**Pixels** — Use clean, deliberate pixel clusters with crisp readable edges and minimal hand
+antialiasing at key curves only. Do not dither or leave stray/noisy pixels. Render large, but
+design it to read cleanly when downscaled to ~64px.
+**Canvas** — Place the creature centered on a solid flat magenta #ff00ff background (for
+keying), with no baked ground shadow.
 
-Creature: <<<USER CONCEPT HERE>>>
+**Creature** — <<<USER CONCEPT HERE>>>
 
-Do NOT: text, UI, multiple creatures per frame, black keyline outline, big anime/chibi
-eyes, gradient/airbrush shading, realistic/3D shading, neon colors, baked ground shadow.
+**Never** include: text, UI, multiple creatures per frame, black keyline outlines, big
+anime/chibi eyes, gradient/airbrush shading, realistic/3D shading, neon colors, or a baked
+ground shadow.
 ```
 
 Reference line (always include when attaching a previous frame/stage):
 
 ```
-[REFERENCE] Match the attached image's EXACT art style: pixel density, muted earthy
-palette, selective colored (NO black) outline, soft banded cel shading, and mini-heroic
+**Reference** — Match the attached image's exact art style: pixel density, muted earthy
+palette, selective colored (never black) outline, soft banded cel shading, and mini-heroic
 deformation with small simple eyes. Keep this creature's identity consistent; only the
 per-frame motion (and, for evolutions, gradual added detail) changes.
 ```
@@ -57,8 +60,8 @@ per-frame motion (and, for evolutions, gradual added detail) changes.
 ## 2. Frame count / order rules
 
 - Frames per action (standard): **8 frames for every action** (idle/eat/happy/sad = 8 each
-  = 32 frames/form). More frames make the motion smoother. **Every form follows this
-  standard** (the existing `krobi/stage1` is also regenerated in the new style at 8 frames).
+  = 32 frames/form). More frames make the motion smoother. **Every form of every species
+  follows this standard.**
 - Describe multi-frame continuous actions as a **numbered storyboard** and enforce causal
   order. e.g. "F1 draw the sword from its sheath → F2 raise it overhead → F3 swing down."
   (Never produce a causally reversed order, such as slashing before drawing.)
@@ -75,3 +78,39 @@ per-frame motion (and, for evolutions, gradual added detail) changes.
   e.g. a small demon's horns grow and flames begin to float behind it.
 - Reachable styles are limited by the species' `branchWhitelist` (species.json). Styles that
   do not fit the archetype (e.g. slime → angel/plant) are not whitelisted.
+
+## 4. Sheet discipline (LOCKED — injected verbatim into every prompt)
+
+This block is the sheet *geometry / extraction-safety* contract. It is style-agnostic, so
+it applies to every pet and every form. Inject it verbatim alongside the Style Bible (§1).
+The image model ignores a one-line "evenly spaced" note; these explicit rules are what make
+a strip cleanly sliceable.
+
+```
+Sheet discipline — apply all of this to the whole sheet:
+**Grid** — Lay the frames out on a strict, regular grid: the exact number of frames stated in
+every row, all rows the same length, filling every cell. Give every cell the same width and
+height and the same horizontal pitch (center-to-center spacing) across the whole row, and
+align the columns vertically across all rows. Do NOT bunch frames together, do NOT leave empty
+cells or large gaps mid-row, and do NOT vary the spacing within a row. Keep equal margins on
+all four sides; no frame may touch a canvas edge. The result must look like a machine-cut
+grid, ready for automatic frame extraction.
+**Size lock** — Draw the creature at the same pixel footprint in every single frame: its width
+and height stay within ~10% across all frames. The ONLY allowed shape change is the
+squash/stretch described in the motion; never zoom, change camera distance, or make some
+frames noticeably bigger or smaller than others.
+**Baseline** — Within each row, give every frame the exact same ground baseline; the bottom
+contact point must not drift sideways. Grow any squash/stretch from that baseline. Only frames
+explicitly described as airborne in the motion may lift off it.
+**Bounding box** — Keep the creature within the same imaginary box every frame; no frame is
+noticeably larger or smaller, and no body part is cropped.
+**Effects** — Do not add detached particles, distant sparkles, or floating decorations. Keep
+all FX inside or immediately adjacent to the creature silhouette.
+**Single object** — Keep any prop (food, item) touching the creature (at its mouth/hands) in
+every frame it appears, so the creature and prop read as one connected silhouette. Never draw
+the prop as a separate ball/object sitting in empty space beside the creature.
+**Transition** — Make the first and last frame of each action closely match that action's
+resting pose, so it loops or returns to idle seamlessly.
+**Background (strict)** — Keep every non-creature pixel pure #ff00ff: no gradients, lighting,
+glow, vignette, texture, color variation, or baked ground shadow.
+```

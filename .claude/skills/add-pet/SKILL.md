@@ -30,8 +30,7 @@ stage1 (유년기, no branch)
 ```
 
 - One form = the standard 4-animation set (idle 8 / eat 8 / happy 8 / sad 8 = 32 frames).
-  All forms follow this, including krobi (krobi/stage1 will be regenerated in the new
-  style at 8 frames per action).
+  Every form of every species follows this standard.
 - Branch styles (A/B/C) come from a pool: beast, humanoid, machine, spirit, morph,
   human, angel, demon, dragon, plant, … and MUST fit the species archetype
   (slime → not angel/plant). These 3 are the species' `branchWhitelist`.
@@ -49,9 +48,12 @@ stage1 (유년기, no branch)
 
 ## Prerequisites
 
-- Extractor: `tools/extract_sprites.py`
+- **One-step builder: `tools/build_form.py`** (extract → draft manifest → pack in one
+  command; the standard path for Steps 4/6/7). Pass `--no-pack` to stop at the preview for
+  the Step 5 gate, then re-run without it to finalize.
+- Extractor: `tools/extract_sprites.py` (frame splitting only — what the builder calls).
 - Sheet packer: `tools/pack_sheet.py` (merges per-frame PNGs into one `sheet.png` and
-  rewrites the manifest with cell indices + `sheet`/`columns`).
+  rewrites the manifest with cell indices + `sheet`/`columns` — what the builder calls).
 - Python env: `tools/venv` (Pillow + numpy). If missing:
   `python3 -m venv tools/venv && tools/venv/bin/pip install Pillow numpy`.
 - Locked style rules: `src/assets/pets/pet_design.md` (always injected).
@@ -73,7 +75,7 @@ two messages):
 4. **concept** — stage1 (유년기) shape / colors / motif in one or two sentences.
 5. **branch whitelist (3 styles)** — reachable styles that FIT the archetype.
 6. **style reference** — an existing frame for consistency.
-   Default: `src/assets/pets/krobi/stage1/idle_0.png`.
+   Default: a frame from the base species' `stage1` (e.g. `src/assets/pets/krombi/stage1/`).
 
 **Collision check:** compare the new concept / motifs / colors / archetype against
 every entry in catalog.json. If they overlap, tell the user and ask them to
@@ -93,110 +95,99 @@ checkpoint.
 
 ### Step 3 — Generate prompts for the current form
 
-`Read` `src/assets/pets/pet_design.md` and inject it verbatim. For each of the 4
-animations, output a ready-to-paste prompt =
-**pet_design.md rules + Reference line + that animation's INVARIANTS+MOTION block**
-(blocks in `references/animation-prompts.md`), with the form's concept substituted into the Style Bible's
-`Creature:` line.
+`Read` `src/assets/pets/pet_design.md` and inject it verbatim. Output ONE ready-to-paste
+full-sheet prompt that generates the whole **4-row × 8-column sheet** (idle / eat / happy /
+sad) in a single image =
+**the Sheet layout block + pet_design.md §1 Style Bible + Reference line + §4 Sheet discipline
+(all verbatim) + the four row blocks (idle, eat, the body-form happy, sad) + the closing
+`**Never** include` line** (blocks in `references/animation-prompts.md`), with the form's
+concept substituted into the Style Bible's `**Creature**` line.
+
+**happy is body-form specific** — do NOT use a single fixed hop (a machine must not jump
+like a slime). Map the form's archetype/branch to a body-form file, `Read` only that one,
+and inject ITS invariants + motion as Row 3 (its `--anchor` applies only to the single-strip
+fallback; the full-sheet builder in Step 4 uses `preserve`):
+
+| archetype / branch | `motion-by-form/` file | `--anchor` |
+|---|---|---|
+| slime, ooze, morph, spirit, blob | `blob.md` | preserve |
+| beast, ground dragon, quadruped | `quadruped.md` | preserve |
+| humanoid, human, demon | `humanoid.md` | bottom |
+| flying dragon, angel, winged | `winged.md` | preserve |
+| machine, golem | `machine.md` | bottom |
 
 Per-form reference image:
-- **stage1:** the chosen style reference (default krobi stage1 idle_0).
+- **stage1:** the chosen style reference (default: a frame from the base species' stage1).
 - **stage2-X:** that species' `stage1/idle_0.png`.
 - **stage3-X:** that species' `stage2-X/idle_0.png`.
 
-Always tell the user:
+Always tell the user (in chat — never in prompt.md):
 - Generate on solid flat magenta `#ff00ff`, render LARGE / high-res.
 - **Attach the per-form reference image** above so identity/silhouette stays consistent.
-- For sequential actions, keep the numbered storyboard order (pet_design.md §2).
-- **Padding:** leave clear margin around the whole strip — no frame may touch the
-  top/bottom/left/right canvas edge, with even spacing between frames and a gap at both
-  ends. (Frames touching an edge get clipped on extraction.)
-- Save each result to `src/assets/pets/_incoming/<species>_<form>_<anim>.png`
-  (e.g. `ember-pup_stage2-dragon_eat.png`).
+- Keep the row order idle → eat → happy → sad and the numbered storyboard order within each
+  row (pet_design.md §2).
+- **Padding:** leave clear margin around the whole grid — no frame may touch any canvas edge,
+  with even spacing between rows and columns and a gap at every end. (Frames touching an edge
+  get clipped on extraction.)
+- Save the result to `src/assets/pets/_incoming/<species>_<form>_sheet.png`
+  (e.g. `ember-pup_stage2-dragon_sheet.png`).
 
-**Persist the prompts to the form folder.** Write `src/assets/pets/<species>/<form>/prompt.md`
-containing ONLY the paste-ready prompts — one complete, self-contained prompt per animation
-(idle/eat/happy/sad), each a single fenced block = full Style Bible + filled `Creature:`
-line + Reference line + that animation's INVARIANTS+MOTION block + the `Do NOT:` line. The
-user copies one whole block into Nano Banana as-is. Do NOT put workflow/operational text in
-this file (no extract/pack commands, no reference-cropping how-to, no "save to _incoming"
-notes — those live in this skill). Write it in English.
+**Persist the prompt to the form folder.** Write `src/assets/pets/<species>/<form>/prompt.md`
+containing ONLY the single paste-ready full-sheet prompt — one self-contained fenced block =
+Sheet layout block + full Style Bible with filled `**Creature**` line + Reference line + §4
+Sheet discipline block + the four row blocks (idle / eat / body-form happy / sad) + the
+closing `**Never** include` line. The user copies the whole block into Nano Banana as-is.
+Do NOT put workflow/operational text in this file (no extract/pack commands, no
+reference-cropping how-to, no "save to _incoming" notes, no header addressing the user —
+those live in this skill / the chat). Write it in English.
 
-### Step 4 — Extract into the form folder
+### Step 4 — Build the form folder (extract → manifest → pack)
 
-`--size` = that form's frameSize from species.json (stage1/2 = 64, stage3 = 96 in
-the krobi example; adjust per species).
+`tools/build_form.py` does all three in one command: it extracts the 32 frames, writes the
+draft manifest (standard idle/eat/happy/sad set), and packs `sheet.png` + the index manifest.
+`--size` = the form's frameSize from species.json (stage1/2 = 64, stage3 = 96 in the krombi
+example). It defaults to the full-sheet grid (`--rows 4 --cols 8`) and `--anchor preserve`,
+and infers `id` as `<species>/<form>` from `--out`.
 
-**Always use grid mode (`--rows`/`--cols`).** It splits each row at only the largest
-`cols-1` gaps, so detached auxiliary FX (sparkles, flames, lightning, ice, mist, eerie
-aura, radiance/glow) stay merged into their frame instead of being split off or clipped.
-Auto mode (no `--cols`) splits on every gap and will fragment such FX — do not use it.
-
-**Anchor choice (`--anchor`):**
-- `bottom` (default) — in-place actions (idle breathing, sad, eat): each frame sits on the
-  canvas floor.
-- `preserve` — actions with vertical movement/translation (happy hop, jumps, lunges):
-  uses one shared scale + a per-row floor baseline so a frame drawn lifted off the ground
-  renders lifted (the leap is kept). `bottom` would flatten it into an in-place stretch.
-  Requires grid mode. For a full 4-row sheet where only some rows translate, `preserve`
-  is safe for all rows (in-place rows have zero lift, so they behave like `bottom`).
-
-Single strip (one animation per image) → `--rows 1 --cols 8`:
+**Recommended (keeps the Step 5 gate):** build with `--no-pack` first, inspect the preview,
+then re-run without `--no-pack` to finalize (re-extracts + packs):
 
 ```bash
-tools/venv/bin/python tools/extract_sprites.py \
-  src/assets/pets/_incoming/<species>_<form>_idle.png \
-  --out src/assets/pets/<species>/<form> --names idle_0,idle_1,idle_2,idle_3,idle_4,idle_5,idle_6,idle_7 \
-  --size <frameSize> --colors 32 --tol 120 --anchor bottom --rows 1 --cols 8 \
-  --preview src/assets/pets/_incoming/<species>_<form>_idle_preview.png
-```
-
-Full sheet (all 4 animations in one image, 4 rows × 8) → `--rows 4 --cols 8`, with all 32
-names in reading order (idle row, eat row, happy row, sad row):
-
-```bash
-tools/venv/bin/python tools/extract_sprites.py \
+# 1) extract + draft manifest + preview (stops before packing)
+tools/venv/bin/python tools/build_form.py \
   src/assets/pets/_incoming/<species>_<form>_sheet.png \
-  --out src/assets/pets/<species>/<form> \
-  --names idle_0,idle_1,idle_2,idle_3,idle_4,idle_5,idle_6,idle_7,eat_0,eat_1,eat_2,eat_3,eat_4,eat_5,eat_6,eat_7,happy_0,happy_1,happy_2,happy_3,happy_4,happy_5,happy_6,happy_7,sad_0,sad_1,sad_2,sad_3,sad_4,sad_5,sad_6,sad_7 \
-  --size <frameSize> --colors 32 --tol 120 --anchor bottom --rows 4 --cols 8 \
-  --preview src/assets/pets/_incoming/<species>_<form>_preview.png
+  --out src/assets/pets/<species>/<form> --size <frameSize> --no-pack
+# 2) after the preview passes Step 5:
+tools/venv/bin/python tools/build_form.py \
+  src/assets/pets/_incoming/<species>_<form>_sheet.png \
+  --out src/assets/pets/<species>/<form> --size <frameSize>
 ```
 
-Names per animation (8 frames each):
-- idle: `idle_0,idle_1,idle_2,idle_3,idle_4,idle_5,idle_6,idle_7`
-- eat: `eat_0,eat_1,eat_2,eat_3,eat_4,eat_5,eat_6,eat_7`
-- happy: `happy_0,happy_1,happy_2,happy_3,happy_4,happy_5,happy_6,happy_7`
-- sad: `sad_0,sad_1,sad_2,sad_3,sad_4,sad_5,sad_6,sad_7`
+The packed result is `sheet.png` + index `manifest.json` (individual frame PNGs deleted) —
+the form's drop-in asset (see the packed example in `references/templates.md`).
+
+**Why grid + preserve (the builder's defaults):** grid mode (`--rows`/`--cols`) splits each
+row at only the largest `cols-1` gaps, so detached auxiliary FX (sparkles, flames, lightning,
+ice, mist, radiance/glow) stay merged into their frame instead of being split off. Auto mode
+would fragment such FX. `--anchor preserve` keeps the happy row's airborne lift and is safe
+for the in-place rows (zero lift behaves like `bottom`). Tune `--tol` if the gate fails (raise
+to kill leftover shadow; lower if edges get eaten). The builder just calls
+`extract_sprites.py` then `pack_sheet.py`; run those directly only for the single-strip
+fallback (regenerating one row alone → `extract_sprites.py … --rows 1 --cols 8`, then
+`pack_sheet.py`).
 
 ### Step 5 — Inspect (gate)
 
-`Read` each `_preview.png`. Check: correct frame count, **correct causal order**
-(no reversed sequences, see pet_design.md §2), solid bodies, clean transparent background, consistent
-size, bottom-aligned, and identity consistent with the reference. If wrong, tune
-`--tol` (raise to kill leftover shadow; lower if edges get eaten) and re-run, or
-ask the user to regenerate with clearer spacing / corrected order.
+`Read` the `_preview.png` (written next to the incoming sheet). Check: correct frame count,
+**correct causal order** (no reversed sequences, see pet_design.md §2), solid bodies, clean
+transparent background, and the §4 Sheet discipline contract: **scale variation ≤10%, fixed
+baseline (no sideways drift), FX not detached, any food/prop attached (not a separate blob),
+and frame 1 ≈ frame 8 resting pose**, and identity consistent with the reference. If wrong,
+tune `--tol` and re-run, or ask the user to regenerate with clearer spacing / corrected order
+(or, for happy, the wrong body-form motion). When it passes, finalize with Step 4 step 2
+(without `--no-pack`).
 
-### Step 6 — Write a draft manifest (frames = frame names)
-
-Create `src/assets/pets/<species>/<form>/manifest.json` from the draft template in
-`references/templates.md`, with `frames` as the extracted frame file names (the next
-step rewrites them to cell indices). Set `id` to `<species>/<form>` and `frameSize`
-to the form's size.
-
-### Step 7 — Pack into a single sheet
-
-Merge the per-frame PNGs into one `sheet.png` and rewrite the manifest with cell
-indices (+ `sheet`/`columns`):
-
-```bash
-tools/venv/bin/python tools/pack_sheet.py src/assets/pets/<species>/<form> --columns 8
-```
-
-This deletes the individual frame PNGs, leaving just `sheet.png` + `manifest.json`
-(the form's drop-in asset). See the packed example in `references/templates.md`.
-
-### Step 8 — Write/update species.json and catalog.json
+### Step 6 — Write/update species.json and catalog.json
 
 - `src/assets/pets/<species>/species.json` — from the species.json template in
   `references/templates.md`. Fill `forms` with every form you intend (declare the tree
@@ -206,7 +197,7 @@ This deletes the individual frame PNGs, leaving just `sheet.png` + `manifest.jso
   The file is `{ "species": [ … ] }`; push the new entry into the `species` array.
   Skip if the entry already exists.
 
-### Step 9 — Done
+### Step 7 — Done
 
 The species folder now matches the app's contract. Commit each form's `sheet.png` +
 manifest.json + species.json + catalog.json.
