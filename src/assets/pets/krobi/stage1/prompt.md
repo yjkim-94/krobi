@@ -112,11 +112,14 @@ Small simple dark dot eyes (no white sclera) and a tiny mouth; expression via br
 
 [FRAME STRIP] 8 frames in one horizontal row, evenly spaced, same baseline, even margin
 at both ends — no frame touches an edge.
-[INVARIANTS — identical in all 8] same creature, colors, edges, size, camera.
-Only pose/vertical position and small sparkle FX change per MOTION.
-[MOTION — one joyful hop] F1: neutral, happy. F2: crouch/squash, anticipating. F3: deeper
-crouch. F4: push off, body stretching upward. F5: airborne peak, stretched, small sparkles
-around it. F6: starting to descend. F7: descending faster. F8: landing squash, big smile.
+[INVARIANTS — identical in all 8] same creature, colors, edges, size, camera, and FACING
+(front-facing, upright). The body NEVER turns, tilts, leans left/right, or rotates — only
+vertical position and vertical squash/stretch change. Small sparkle FX may change.
+[MOTION — one clean vertical hop IN PLACE; body axis stays vertical, no sideways drift or
+turning] F1: resting, happy. F2: squash down (shorter/wider), anticipating. F3: deeper
+squash. F4: push off, stretching straight up (taller/narrower). F5: airborne peak, clearly
+lifted off the ground, small sparkles around it. F6: starting to fall, still upright. F7:
+falling back toward neutral. F8: landing squash (shorter/wider), big smile.
 
 Do NOT: text, UI, multiple creatures per frame, black keyline outline, big anime/chibi
 eyes, gradient/airbrush shading, realistic/3D shading, neon colors, baked ground shadow.

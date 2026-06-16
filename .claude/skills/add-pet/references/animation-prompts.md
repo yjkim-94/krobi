@@ -31,11 +31,14 @@ swallow, eyes soften. F8: mouth closed, satisfied content smile.
 **happy (8 frames, plays once)**
 ```
 [FRAME STRIP] 8 frames, evenly spaced, same baseline.
-[INVARIANTS — identical in all 8] same creature, colors, edges, size, camera.
-Only pose/vertical position and small sparkle FX change per MOTION.
-[MOTION — one joyful hop] F1: neutral, happy. F2: crouch/squash, anticipating. F3: deeper
-crouch. F4: push off, body stretching upward. F5: airborne peak, stretched, small sparkles
-around it. F6: starting to descend. F7: descending faster. F8: landing squash, big smile.
+[INVARIANTS — identical in all 8] same creature, colors, edges, size, camera, and FACING
+(front-facing, upright). The body NEVER turns, tilts, leans left/right, or rotates — only
+vertical position and vertical squash/stretch change. Small sparkle FX may change.
+[MOTION — one clean vertical hop IN PLACE; body axis stays vertical, no sideways drift or
+turning] F1: resting, happy. F2: squash down (shorter/wider), anticipating. F3: deeper
+squash. F4: push off, stretching straight up (taller/narrower). F5: airborne peak, clearly
+lifted off the ground, small sparkles around it. F6: starting to fall, still upright. F7:
+falling back toward neutral. F8: landing squash (shorter/wider), big smile.
 ```
 
 **sad (8 frames, loop)**
