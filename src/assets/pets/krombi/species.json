@@ -1,14 +1,18 @@
 {
   "id": "krombi",
   "archetype": "slime",
-  "branchWhitelist": ["beast", "machine", "morph"],
+  "branches": {
+    "maker": { "label": "마그마 대장장이", "tendency": "생산·창작" },
+    "sage":  { "label": "지혜의 등불 정령", "tendency": "탐구·학습" },
+    "wild":  { "label": "불꽃 야수", "tendency": "유희·감상" }
+  },
   "forms": {
-    "stage1":         { "frameSize": 64 },
-    "stage2-beast":   { "frameSize": 64, "from": "stage1", "condition": { "stat": "coding",   "gte": 100 } },
-    "stage2-machine": { "frameSize": 64, "from": "stage1", "condition": { "stat": "research", "gte": 100 } },
-    "stage2-morph":   { "frameSize": 64, "from": "stage1", "condition": { "stat": "writing",  "gte": 100 } },
-    "stage3-beast":   { "frameSize": 96, "from": "stage2-beast",   "condition": { "stat": "coding",   "gte": 300 } },
-    "stage3-machine": { "frameSize": 96, "from": "stage2-machine", "condition": { "stat": "research", "gte": 300 } },
-    "stage3-morph":   { "frameSize": 96, "from": "stage2-morph",   "condition": { "stat": "writing",  "gte": 300 } }
+    "stage1":       { "frameSize": 64, "expToEvolve": 100 },
+    "stage2-maker": { "frameSize": 64, "from": "stage1", "branch": "maker", "expToEvolve": 300 },
+    "stage2-sage":  { "frameSize": 64, "from": "stage1", "branch": "sage",  "expToEvolve": 300 },
+    "stage2-wild":  { "frameSize": 64, "from": "stage1", "branch": "wild",  "expToEvolve": 300 },
+    "stage3-maker": { "frameSize": 96, "from": "stage2-maker", "branch": "maker" },
+    "stage3-sage":  { "frameSize": 96, "from": "stage2-sage",  "branch": "sage" },
+    "stage3-wild":  { "frameSize": 96, "from": "stage2-wild",  "branch": "wild" }
   }
 }

@@ -16,24 +16,34 @@ describe("catalog.json", () => {
 });
 
 describe("krombi species.json", () => {
-  it("declares archetype + 3-branch whitelist matching the catalog", () => {
+  it("declares 3 branches matching the catalog", () => {
     const entry = cat.species.find((s) => s.id === "krombi")!;
     expect(krombi.archetype).toBe("slime");
-    expect(krombi.branchWhitelist).toHaveLength(3);
-    expect([...krombi.branchWhitelist].sort()).toEqual([...entry.branches].sort());
+    expect(Object.keys(krombi.branches).sort()).toEqual([...entry.branches].sort());
   });
 
-  it("has a real stage1 form with frameSize 64", () => {
-    expect(krombi.forms.stage1).toBeDefined();
-    expect(krombi.forms.stage1.frameSize).toBe(64);
-    expect(krombi.forms.stage1.from).toBeUndefined();
+  it("stage1 has frameSize 64, an expToEvolve, no parent/branch", () => {
+    const s1 = krombi.forms.stage1;
+    expect(s1.frameSize).toBe(64);
+    expect(s1.from).toBeUndefined();
+    expect(s1.branch).toBeUndefined();
+    expect(s1.expToEvolve).toBeGreaterThan(0);
   });
 
-  it("every non-stage1 form has a parent and an abstract condition", () => {
-    for (const [key, form] of Object.entries(krombi.forms)) {
-      if (key === "stage1") continue;
-      expect(form.from, `${key}.from`).toBeTruthy();
-      expect(form.condition?.stat, `${key}.condition.stat`).toBeTruthy();
+  it("every stage2 form has from=stage1, a known branch, and an expToEvolve", () => {
+    for (const key of ["stage2-maker", "stage2-sage", "stage2-wild"]) {
+      const f = krombi.forms[key];
+      expect(f.from).toBe("stage1");
+      expect(krombi.branches[f.branch!]).toBeDefined();
+      expect(f.expToEvolve).toBeGreaterThan(0);
+    }
+  });
+
+  it("stage3 forms are terminal (no expToEvolve)", () => {
+    for (const key of ["stage3-maker", "stage3-sage", "stage3-wild"]) {
+      const f = krombi.forms[key];
+      expect(f.from).toBe(`stage2-${f.branch}`);
+      expect(f.expToEvolve).toBeUndefined();
     }
   });
 });

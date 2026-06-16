@@ -36,20 +36,30 @@ export interface Catalog {
   species: CatalogEntry[];
 }
 
+/** A reachable evolution branch. Key (e.g. "maker") is used in form names. */
+export interface SpeciesBranch {
+  /** in-game display name of the branch's evolved form */
+  label: string;
+  /** the user tendency this branch aligns with (display string) */
+  tendency: string;
+}
+
 /** species.json 의 한 형태(노드) */
 export interface SpeciesForm {
   frameSize: number;
   /** 부모 노드 키(stage1 은 없음) */
   from?: string;
-  /** 분기 조건 — stat 은 업무 카테고리(별도 spec), gte 는 placeholder 임계 */
-  condition?: { stat: string; gte: number };
+  /** 이 폼이 속한 분기 키 (stage1 은 없음) */
+  branch?: string;
+  /** 이 폼에서 다음 단계로 진화하는 데 필요한 EXP. 없으면 종착(진화 불가). */
+  expToEvolve?: number;
 }
 
-/** species.json — 종별 진화 트리 + 진화 공식 */
+/** species.json — 종별 진화 트리 */
 export interface SpeciesDef {
   id: string;
   archetype: string;
-  /** 이 종이 도달 가능한 스타일(공식). 아키타입에 맞는 값만. */
-  branchWhitelist: string[];
+  /** 분기 키 → 분기 정의 (maker/sage/wild) */
+  branches: Record<string, SpeciesBranch>;
   forms: Record<string, SpeciesForm>;
 }
