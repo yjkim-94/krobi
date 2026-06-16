@@ -1,7 +1,7 @@
 {
   "id": "krobi/stage1",
   "frameSize": 64,
-  "displayScale": 2,
+  "displayScale": 3,
   "sheet": "sheet.png",
   "columns": 8,
   "animations": {
@@ -45,7 +45,7 @@
         22,
         23
       ],
-      "fps": 10,
+      "fps": 8,
       "loop": false,
       "then": "idle"
     },
