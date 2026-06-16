@@ -1,0 +1,13 @@
+{
+  "species": [
+    {
+      "id": "krobi",
+      "displayName": "크로비",
+      "archetype": "slime",
+      "concept": "둥근 청록 블롭 슬라임, 큰 눈, 작은 물방울 하이라이트",
+      "claimedMotifs": ["슬라임", "물방울", "왕관", "망토"],
+      "claimedColors": ["청록", "민트"],
+      "branches": ["humanoid", "spirit", "dragon"]
+    }
+  ]
+}

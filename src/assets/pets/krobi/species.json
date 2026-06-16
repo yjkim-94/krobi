@@ -1,0 +1,14 @@
+{
+  "id": "krobi",
+  "archetype": "slime",
+  "branchWhitelist": ["humanoid", "spirit", "dragon"],
+  "forms": {
+    "stage1":          { "frameSize": 64 },
+    "stage2-humanoid": { "frameSize": 64, "from": "stage1", "condition": { "stat": "writing",  "gte": 100 } },
+    "stage2-spirit":   { "frameSize": 64, "from": "stage1", "condition": { "stat": "research", "gte": 100 } },
+    "stage2-dragon":   { "frameSize": 64, "from": "stage1", "condition": { "stat": "coding",   "gte": 100 } },
+    "stage3-humanoid": { "frameSize": 96, "from": "stage2-humanoid", "condition": { "stat": "writing",  "gte": 300 } },
+    "stage3-spirit":   { "frameSize": 96, "from": "stage2-spirit",   "condition": { "stat": "research", "gte": 300 } },
+    "stage3-dragon":   { "frameSize": 96, "from": "stage2-dragon",   "condition": { "stat": "coding",   "gte": 300 } }
+  }
+}
