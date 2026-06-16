@@ -390,9 +390,9 @@ stage1 (유년기, no branch)
   └─ stage2-<C> ─→ stage3-<C>
 ```
 
-- One form = the standard 4-animation set (idle 6 / eat 8 / happy 6 / sad 5 = 25 frames).
-  (Legacy `krobi/stage1` keeps its original 3/4/3/2 = 12 frames; the 25-frame standard
-  applies to newly generated forms.)
+- One form = the standard 4-animation set (idle 8 / eat 8 / happy 8 / sad 8 = 32 frames).
+  All forms follow this, including krobi (krobi/stage1 will be regenerated in the new
+  style at 8 frames per action).
 - Branch styles (A/B/C) come from a pool: beast, humanoid, machine, spirit, morph,
   human, angel, demon, dragon, plant, … and MUST fit the species archetype
   (slime → not angel/plant). These 3 are the species' `branchWhitelist`.
@@ -475,16 +475,16 @@ the krobi example; adjust per species). Example:
 ```bash
 tools/venv/bin/python tools/extract_sprites.py \
   src/assets/pets/_incoming/<species>_<form>_idle.png \
-  --out src/assets/pets/<species>/<form> --names idle_0,idle_1,idle_2,idle_3,idle_4,idle_5 \
+  --out src/assets/pets/<species>/<form> --names idle_0,idle_1,idle_2,idle_3,idle_4,idle_5,idle_6,idle_7 \
   --size 64 --colors 32 --tol 120 --anchor bottom \
   --preview src/assets/pets/_incoming/<species>_<form>_idle_preview.png
 ```
 
-Names per animation (5~8 frames each):
-- idle: `idle_0,idle_1,idle_2,idle_3,idle_4,idle_5`
+Names per animation (8 frames each):
+- idle: `idle_0,idle_1,idle_2,idle_3,idle_4,idle_5,idle_6,idle_7`
 - eat: `eat_0,eat_1,eat_2,eat_3,eat_4,eat_5,eat_6,eat_7`
-- happy: `happy_0,happy_1,happy_2,happy_3,happy_4,happy_5`
-- sad: `sad_0,sad_1,sad_2,sad_3,sad_4`
+- happy: `happy_0,happy_1,happy_2,happy_3,happy_4,happy_5,happy_6,happy_7`
+- sad: `sad_0,sad_1,sad_2,sad_3,sad_4,sad_5,sad_6,sad_7`
 
 ### Step 5 — Inspect (gate)
 
@@ -520,15 +520,15 @@ Each strip is horizontal, frames left→right, evenly spaced, equal cell size, s
 baseline. INVARIANTS lock what must not change; MOTION is the per-frame storyboard
 (numbered, causal order — see pet_design.md §2).
 
-**idle (6 frames, breathing loop)**
+**idle (8 frames, breathing loop)**
 ```
-[FRAME STRIP] 6 frames, evenly spaced, same baseline.
-[INVARIANTS — identical in all 6] same creature, colors, edges, overall size,
+[FRAME STRIP] 8 frames, evenly spaced, same baseline.
+[INVARIANTS — identical in all 8] same creature, colors, edges, overall size,
 ground position, camera. Only the body silhouette changes per MOTION.
-[MOTION — gentle breathing, one smooth loop] F1: neutral resting. F2: exhale, squashed
-slightly shorter and wider. F3: deepest squash (lowest, widest). F4: returning up toward
-neutral. F5: inhale, stretched slightly taller and narrower. F6: peak stretch (tallest,
-narrowest). Loops back to F1 seamlessly.
+[MOTION — gentle breathing, one smooth loop] F1: neutral resting. F2: exhale, slightly
+squashed (shorter/wider). F3: deeper squash. F4: deepest squash (lowest, widest). F5:
+rising back toward neutral. F6: inhale, slightly stretched (taller/narrower). F7: more
+stretch. F8: peak stretch (tallest, narrowest). Loops back to F1 seamlessly.
 ```
 
 **eat (8 frames, plays once)**
@@ -542,24 +542,25 @@ smaller. F5: cheeks puffed, chewing, eyes squint happily. F6: chewing (other sid
 swallow, eyes soften. F8: mouth closed, satisfied content smile.
 ```
 
-**happy (6 frames, plays once)**
+**happy (8 frames, plays once)**
 ```
-[FRAME STRIP] 6 frames, evenly spaced, same baseline.
-[INVARIANTS — identical in all 6] same creature, colors, edges, size, camera.
+[FRAME STRIP] 8 frames, evenly spaced, same baseline.
+[INVARIANTS — identical in all 8] same creature, colors, edges, size, camera.
 Only pose/vertical position and small sparkle FX change per MOTION.
-[MOTION — one joyful hop] F1: neutral, happy. F2: crouch/squash, anticipating. F3: push
-off, body stretching upward. F4: airborne peak, stretched, small sparkles around it. F5:
-descending. F6: landing squash, big smile.
+[MOTION — one joyful hop] F1: neutral, happy. F2: crouch/squash, anticipating. F3: deeper
+crouch. F4: push off, body stretching upward. F5: airborne peak, stretched, small sparkles
+around it. F6: starting to descend. F7: descending faster. F8: landing squash, big smile.
 ```
 
-**sad (5 frames, loop)**
+**sad (8 frames, loop)**
 ```
-[FRAME STRIP] 5 frames, evenly spaced, same baseline.
-[INVARIANTS — identical in all 5] same creature, colors, edges, size, camera.
+[FRAME STRIP] 8 frames, evenly spaced, same baseline.
+[INVARIANTS — identical in all 8] same creature, colors, edges, size, camera.
 Only droop, eyes, and a tear change per MOTION.
 [MOTION — slow sad loop] F1: drooped, downturned mouth, sad eyes. F2: droops a little
-more. F3: deepest droop, a tear welling at the eye. F4: tear slides down a little. F5:
-slight settle, breath in. Loops back to F1 slowly.
+more. F3: deeper droop. F4: deepest droop, a tear welling at the eye. F5: tear slides
+down. F6: tear drips off. F7: small sniff, slight settle. F8: breath in, slight rise.
+Loops back to F1 slowly.
 ```
 
 ## manifest.json template (per form)
@@ -570,15 +571,13 @@ slight settle, breath in. Loops back to F1 slowly.
   "frameSize": 64,
   "displayScale": 2,
   "animations": {
-    "idle":  { "frames": ["idle_0", "idle_1", "idle_2", "idle_3", "idle_4", "idle_5"], "fps": 6, "loop": true },
+    "idle":  { "frames": ["idle_0", "idle_1", "idle_2", "idle_3", "idle_4", "idle_5", "idle_6", "idle_7"], "fps": 8, "loop": true },
     "eat":   { "frames": ["eat_0", "eat_1", "eat_2", "eat_3", "eat_4", "eat_5", "eat_6", "eat_7"], "fps": 10, "loop": false, "then": "idle" },
-    "happy": { "frames": ["happy_0", "happy_1", "happy_2", "happy_3", "happy_4", "happy_5"], "fps": 10, "loop": false, "then": "idle" },
-    "sad":   { "frames": ["sad_0", "sad_1", "sad_2", "sad_3", "sad_4"], "fps": 3, "loop": true }
+    "happy": { "frames": ["happy_0", "happy_1", "happy_2", "happy_3", "happy_4", "happy_5", "happy_6", "happy_7"], "fps": 10, "loop": false, "then": "idle" },
+    "sad":   { "frames": ["sad_0", "sad_1", "sad_2", "sad_3", "sad_4", "sad_5", "sad_6", "sad_7"], "fps": 4, "loop": true }
   }
 }
 ```
-
-(Legacy `krobi/stage1/manifest.json` keeps its original 3/4/3/2 frame set — do not rewrite it.)
 
 ## species.json template
 
