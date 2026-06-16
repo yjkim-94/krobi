@@ -134,7 +134,7 @@ function App() {
       const saved = (await store.get("window_size")) as WindowSize | undefined;
       const size = saved ?? fitWindowSize(boxSize(measured), PET.displayScale, MARGIN);
       await getCurrentWindow().setSize(new LogicalSize(size.width, size.height));
-    })();
+    })().catch((e) => console.error("펫 시트 로드/측정 실패:", e));
   }, []);
 
   // 창 크기 변화 추적(리사이즈 시 펫 스케일 갱신).
