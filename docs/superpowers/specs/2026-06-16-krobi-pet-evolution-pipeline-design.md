@@ -48,11 +48,11 @@ src/assets/pets/
   _incoming/                      # 나노바나나 원본 스트립 투입구 (작업용, 커밋 제외)
   <species>/
     species.json                  # 진화 트리 + 분기 화이트리스트(공식) + 메타
-    stage1/            manifest.json + 32프레임      # 유년기 (분기 없음)
-    stage2-<branchA>/  manifest.json + 32프레임      # 성장기 3분기
+    stage1/            sheet.png + manifest.json     # 유년기 (분기 없음)
+    stage2-<branchA>/  sheet.png + manifest.json     # 성장기 3분기
     stage2-<branchB>/  …
     stage2-<branchC>/  …
-    stage3-<branchA>/  manifest.json + 32프레임      # 성숙기 3형태 (각 2단계 직선 계승)
+    stage3-<branchA>/  sheet.png + manifest.json     # 성숙기 3형태 (각 2단계 직선 계승)
     stage3-<branchB>/  …
     stage3-<branchC>/  …
 tools/
@@ -125,26 +125,31 @@ tools/
 - `condition.stat` = **추상 업무 카테고리 문자열**. 본 spec에서는 스키마와 예시 값만 확정하고, 카테고리 목록·적립 규칙·임계 튜닝은 업무추적 spec에서 정의한다. (gte/임계 숫자는 placeholder.)
 - `frameSize`는 형태별 가변. 성숙기는 96 등으로 키울 수 있다(런타임 창 크기 확대는 이후 phase). `PetManifest.frameSize` 타입이 이미 지원한다.
 
-## 7. `manifest.json` (형태 단위)
+## 7. `sheet.png` + `manifest.json` (형태 단위)
 
-형태 폴더마다 1개. 기존 단일 펫 매니페스트와 동일 스키마이며, `id`는 `<species>/<form>` 경로로 식별된다.
+형태 폴더마다 **스프라이트 시트 1장(`sheet.png`) + manifest.json 1개**. 개별 프레임 PNG는
+`tools/pack_sheet.py`로 격자 시트(열 수 `columns`)에 병합되고, manifest의 `frames`는 시트
+**셀 인덱스**(좌→우, 위→아래)가 된다. `id`는 `<species>/<form>` 경로로 식별된다.
 
 ```json
 {
   "id": "krobi/stage1",
   "frameSize": 64,
   "displayScale": 2,
+  "sheet": "sheet.png",
+  "columns": 8,
   "animations": {
-    "idle":  { "frames": ["idle_0", "idle_1", "idle_0", "idle_2"], "fps": 4, "loop": true },
-    "eat":   { "frames": ["eat_0", "eat_1", "eat_2", "eat_3"], "fps": 8, "loop": false, "then": "idle" },
-    "happy": { "frames": ["happy_0", "happy_1", "happy_2"], "fps": 8, "loop": false, "then": "idle" },
-    "sad":   { "frames": ["sad_0", "sad_1"], "fps": 2, "loop": true }
+    "idle":  { "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 8, "loop": true },
+    "eat":   { "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 10, "loop": false, "then": "idle" },
+    "happy": { "frames": [16, 17, 18, 19, 20, 21, 22, 23], "fps": 10, "loop": false, "then": "idle" },
+    "sad":   { "frames": [24, 25, 26, 27, 28, 29, 30, 31], "fps": 4, "loop": true }
   }
 }
 ```
 
 - 애니메이션 세트(idle/eat/happy/sad)는 모든 형태에서 동일 표준(각 동작 8프레임 = 32프레임) 유지.
-- `frameSize`만 형태별로 다를 수 있다(예: stage3 = 96).
+- `frameSize`만 형태별로 다를 수 있다(예: stage3 = 96). 시트 크기 = `columns × frameSize` × `행수 × frameSize`.
+- 런타임은 `background-position`으로 셀 하나를 잘라 `displayScale`로 확대 렌더(`image-rendering: pixelated`).
 
 ## 8. `add-pet` 스킬 재작업
 

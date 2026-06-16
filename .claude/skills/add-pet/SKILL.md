@@ -7,7 +7,7 @@ description: Use when the user wants to add a new pet, character, or monster to 
 
 This skill turns "add a new monster" into a repeatable pipeline:
 **interview → catalog dedup → generate style-locked prompts → user creates art in
-Nano Banana → extract → write form folders + species.json + catalog entry.**
+Nano Banana → extract → pack into one sheet → write form folders + species.json + catalog entry.**
 
 The image model (Nano Banana) only handles *rough layout + content*; the Python
 extractor enforces *exact size, baseline alignment, palette cleanup*. Style
@@ -36,7 +36,7 @@ stage1 (유년기, no branch)
 ## Scope
 
 - **In scope:** producing the per-species folder structure under
-  `src/assets/pets/<species>/`, with form folders (frames + manifest.json),
+  `src/assets/pets/<species>/`, with form folders (one `sheet.png` + manifest.json),
   `species.json` (evolution tree), and a `catalog.json` entry.
 - **Out of scope:** the work-tracking runtime that drives which branch is reached,
   evolution transition FX, and the app's multi-form runtime loader. Branch
@@ -45,6 +45,8 @@ stage1 (유년기, no branch)
 ## Prerequisites
 
 - Extractor: `tools/extract_sprites.py`
+- Sheet packer: `tools/pack_sheet.py` (merges per-frame PNGs into one `sheet.png` and
+  rewrites the manifest with cell indices + `sheet`/`columns`).
 - Python env: `tools/venv` (Pillow + numpy). If missing:
   `python3 -m venv tools/venv && tools/venv/bin/pip install Pillow numpy`.
 - Locked style rules: `src/assets/pets/pet_design.md` (always injected).
@@ -131,14 +133,25 @@ size, bottom-aligned, and identity consistent with the reference. If wrong, tune
 `--tol` (raise to kill leftover shadow; lower if edges get eaten) and re-run, or
 ask the user to regenerate with clearer spacing / corrected order.
 
-### Step 6 — Write the manifest for the form
+### Step 6 — Write a draft manifest (frames = frame names)
 
-Create `src/assets/pets/<species>/<form>/manifest.json` from the template below.
-Set `id` to `<species>/<form>` and `frameSize` to the form's size. Use the template
-as the basis — do NOT copy `krobi/stage1/manifest.json` (it is the legacy 3/4/3/2
-frame set until krobi is regenerated).
+Create `src/assets/pets/<species>/<form>/manifest.json` from the **draft template**
+below, with `frames` as the extracted frame file names (the next step rewrites them
+to cell indices). Set `id` to `<species>/<form>` and `frameSize` to the form's size.
 
-### Step 7 — Write/update species.json and catalog.json
+### Step 7 — Pack into a single sheet
+
+Merge the per-frame PNGs into one `sheet.png` and rewrite the manifest with cell
+indices (+ `sheet`/`columns`):
+
+```bash
+tools/venv/bin/python tools/pack_sheet.py src/assets/pets/<species>/<form> --columns 8
+```
+
+This deletes the individual frame PNGs, leaving just `sheet.png` + `manifest.json`
+(the form's drop-in asset). See the packed example below.
+
+### Step 8 — Write/update species.json and catalog.json
 
 - `src/assets/pets/<species>/species.json` — from the template below. Fill `forms`
   with every form you intend (declare the tree even if some art is pending). Keep
@@ -147,10 +160,10 @@ frame set until krobi is regenerated).
   `branchWhitelist`). The file is `{ "species": [ … ] }`; push the new entry into the
   `species` array. Skip if the entry already exists.
 
-### Step 8 — Done
+### Step 9 — Done
 
-The species folder now matches the app's contract. Commit the frames + per-form
-manifests + species.json + catalog.json.
+The species folder now matches the app's contract. Commit each form's `sheet.png` +
+manifest.json + species.json + catalog.json.
 
 ---
 
@@ -203,7 +216,10 @@ down. F6: tear drips off. F7: small sniff, slight settle. F8: breath in, slight 
 Loops back to F1 slowly.
 ```
 
-## manifest.json template (per form)
+## manifest.json draft template (per form — before packing)
+
+`frames` are frame file names; `pack_sheet.py` rewrites them to cell indices and adds
+`sheet` + `columns`.
 
 ```json
 {
@@ -215,6 +231,24 @@ Loops back to F1 slowly.
     "eat":   { "frames": ["eat_0", "eat_1", "eat_2", "eat_3", "eat_4", "eat_5", "eat_6", "eat_7"], "fps": 10, "loop": false, "then": "idle" },
     "happy": { "frames": ["happy_0", "happy_1", "happy_2", "happy_3", "happy_4", "happy_5", "happy_6", "happy_7"], "fps": 10, "loop": false, "then": "idle" },
     "sad":   { "frames": ["sad_0", "sad_1", "sad_2", "sad_3", "sad_4", "sad_5", "sad_6", "sad_7"], "fps": 4, "loop": true }
+  }
+}
+```
+
+After `pack_sheet.py` (columns 8 → 4 rows), the manifest is index-based:
+
+```json
+{
+  "id": "<species>/<form>",
+  "frameSize": 64,
+  "displayScale": 2,
+  "sheet": "sheet.png",
+  "columns": 8,
+  "animations": {
+    "idle":  { "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 8, "loop": true },
+    "eat":   { "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 10, "loop": false, "then": "idle" },
+    "happy": { "frames": [16, 17, 18, 19, 20, 21, 22, 23], "fps": 10, "loop": false, "then": "idle" },
+    "sad":   { "frames": [24, 25, 26, 27, 28, 29, 30, 31], "fps": 4, "loop": true }
   }
 }
 ```
