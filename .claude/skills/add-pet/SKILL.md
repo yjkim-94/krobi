@@ -31,9 +31,13 @@ stage1 (유년기, no branch)
 
 - One form = the standard 4-animation set (idle 8 / eat 8 / happy 8 / sad 8 = 32 frames).
   Every form of every species follows this standard.
-- Branch styles (A/B/C) come from a pool: beast, humanoid, machine, spirit, morph,
-  human, angel, demon, dragon, plant, … and MUST fit the species archetype
-  (slime → not angel/plant). These 3 are the species' `branchWhitelist`.
+- The three branches are **fixed to the user tendencies**: `maker` (생산·창작),
+  `sage` (탐구·학습), `wild` (유희·감상). They are NOT picked from a free style pool.
+- **Identity-variation rule:** stage2/3 of each branch MUST be a variation of the stage1
+  identity (same material / element / silhouette lineage), specialized toward the branch:
+  `maker` forges/builds/shapes, `sage` illuminates/refines/knows, `wild` runs untamed/fierce.
+  No genre jumps (a lava slime never becomes a machine). Example (krombi): maker →
+  마그마 대장장이→용암 골렘, sage → 도깨비불→지혜의 등불 정령, wild → 불꽃 야수→화염 정령.
 - Authoring all 7 forms is the full job; a single playthrough only shows
   stage1 → one stage2 → one stage3.
 
@@ -43,8 +47,9 @@ stage1 (유년기, no branch)
   `src/assets/pets/<species>/`, with form folders (one `sheet.png` + manifest.json),
   `species.json` (evolution tree), and a `catalog.json` entry.
 - **Out of scope:** the work-tracking runtime that drives which branch is reached,
-  evolution transition FX, and the app's multi-form runtime loader. Branch
-  conditions in species.json stay abstract (`stat >= threshold`, placeholder).
+  evolution transition FX, and the app's multi-form runtime loader.
+  Evolution in species.json is expressed as `expToEvolve` per form (EXP threshold) with the
+  branch resolved from the dominant tendency at the first evolution; the live runtime drives it.
 
 ## Prerequisites
 
@@ -73,7 +78,11 @@ two messages):
 2. **display name** — shown in-game.
 3. **archetype** — base body family (slime / beast / dragon / …).
 4. **concept** — stage1 (유년기) shape / colors / motif in one or two sentences.
-5. **branch whitelist (3 styles)** — reachable styles that FIT the archetype.
+5. **branch themes (maker / sage / wild)** — after the stage1 concept is set, YOU propose
+   three evolved themes, one per fixed tendency (`maker` 생산·창작 / `sage` 탐구·학습 /
+   `wild` 유희·감상), each a variation of the stage1 identity (per the Identity-variation
+   rule), folding in any extra concept the user gives. The user confirms/adjusts before
+   catalog + prompts are generated.
 6. **style reference** — an existing frame for consistency.
    Default: a frame from the base species' `stage1` (e.g. `src/assets/pets/krombi/stage1/`).
 
@@ -191,9 +200,10 @@ tune `--tol` and re-run, or ask the user to regenerate with clearer spacing / co
 
 - `src/assets/pets/<species>/species.json` — from the species.json template in
   `references/templates.md`. Fill `forms` with every form you intend (declare the tree
-  even if some art is pending). Keep `condition.stat`/`gte` as abstract placeholders.
-- Append the species to `src/assets/pets/catalog.json` (`branches` mirrors
-  `branchWhitelist`). Use the catalog.json entry template in `references/templates.md`.
+  even if some art is pending). Use `expToEvolve` per form (stage3 omits it); branch keys
+  are always `maker`/`sage`/`wild`.
+- Append the species to `src/assets/pets/catalog.json` (`branches` lists the branch keys
+  `maker`/`sage`/`wild`). Use the catalog.json entry template in `references/templates.md`.
   The file is `{ "species": [ … ] }`; push the new entry into the `species` array.
   Skip if the entry already exists.
 
@@ -206,8 +216,8 @@ manifest.json + species.json + catalog.json.
 
 ## Notes
 
-- `condition.stat` values are placeholders until the work-tracking spec finalizes them;
-  the threshold numbers are provisional too.
+- `expToEvolve` numbers are provisional and tuned by the runtime spec; stage3 forms omit it
+  (terminal).
 - Existing frames make excellent reference images. Evolutions MUST attach the
   previous stage; consistency from a reference beats text alone.
 - Simpler, rounder creatures reproduce best; complex/humanoid forms need more

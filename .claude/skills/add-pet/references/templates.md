@@ -43,15 +43,19 @@ After `pack_sheet.py` (columns 8 → 4 rows), the manifest is index-based:
 {
   "id": "<species>",
   "archetype": "<archetype>",
-  "branchWhitelist": ["<A>", "<B>", "<C>"],
+  "branches": {
+    "maker": { "label": "<maker form name>", "tendency": "생산·창작" },
+    "sage":  { "label": "<sage form name>",  "tendency": "탐구·학습" },
+    "wild":  { "label": "<wild form name>",  "tendency": "유희·감상" }
+  },
   "forms": {
-    "stage1":     { "frameSize": 64 },
-    "stage2-<A>": { "frameSize": 64, "from": "stage1", "condition": { "stat": "<catA>", "gte": 100 } },
-    "stage2-<B>": { "frameSize": 64, "from": "stage1", "condition": { "stat": "<catB>", "gte": 100 } },
-    "stage2-<C>": { "frameSize": 64, "from": "stage1", "condition": { "stat": "<catC>", "gte": 100 } },
-    "stage3-<A>": { "frameSize": 96, "from": "stage2-<A>", "condition": { "stat": "<catA>", "gte": 300 } },
-    "stage3-<B>": { "frameSize": 96, "from": "stage2-<B>", "condition": { "stat": "<catB>", "gte": 300 } },
-    "stage3-<C>": { "frameSize": 96, "from": "stage2-<C>", "condition": { "stat": "<catC>", "gte": 300 } }
+    "stage1":       { "frameSize": 64, "expToEvolve": 100 },
+    "stage2-maker": { "frameSize": 64, "from": "stage1", "branch": "maker", "expToEvolve": 300 },
+    "stage2-sage":  { "frameSize": 64, "from": "stage1", "branch": "sage",  "expToEvolve": 300 },
+    "stage2-wild":  { "frameSize": 64, "from": "stage1", "branch": "wild",  "expToEvolve": 300 },
+    "stage3-maker": { "frameSize": 96, "from": "stage2-maker", "branch": "maker" },
+    "stage3-sage":  { "frameSize": 96, "from": "stage2-sage",  "branch": "sage" },
+    "stage3-wild":  { "frameSize": 96, "from": "stage2-wild",  "branch": "wild" }
   }
 }
 ```
@@ -66,6 +70,6 @@ After `pack_sheet.py` (columns 8 → 4 rows), the manifest is index-based:
   "concept": "<one-line concept>",
   "claimedMotifs": ["<motif>", "..."],
   "claimedColors": ["<color>", "..."],
-  "branches": ["<A>", "<B>", "<C>"]
+  "branches": ["maker", "sage", "wild"]
 }
 ```
