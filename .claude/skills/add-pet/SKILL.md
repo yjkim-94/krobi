@@ -132,6 +132,15 @@ the krobi example; adjust per species).
 aura, radiance/glow) stay merged into their frame instead of being split off or clipped.
 Auto mode (no `--cols`) splits on every gap and will fragment such FX — do not use it.
 
+**Anchor choice (`--anchor`):**
+- `bottom` (default) — in-place actions (idle breathing, sad, eat): each frame sits on the
+  canvas floor.
+- `preserve` — actions with vertical movement/translation (happy hop, jumps, lunges):
+  uses one shared scale + a per-row floor baseline so a frame drawn lifted off the ground
+  renders lifted (the leap is kept). `bottom` would flatten it into an in-place stretch.
+  Requires grid mode. For a full 4-row sheet where only some rows translate, `preserve`
+  is safe for all rows (in-place rows have zero lift, so they behave like `bottom`).
+
 Single strip (one animation per image) → `--rows 1 --cols 8`:
 
 ```bash

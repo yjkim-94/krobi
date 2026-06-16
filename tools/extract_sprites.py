@@ -134,6 +134,27 @@ def fit_into(img_rgba, mask_full, box, size, margin, scale, anchor):
     return canvas
 
 
+def place_preserve(img_rgba, mask_full, box, size, margin, scale, row_base_b):
+    """공통 scale로 축소하되 **행 공통 바닥(row_base_b)** 기준으로 수직 위치를 보존.
+    제자리 프레임은 바닥에, 공중에 뜬 프레임은 그만큼 들어올려 배치 → 점프/이동 유지.
+    가로는 콘텐츠 중심 정렬."""
+    l, t, r, b = box
+    crop = Image.fromarray(img_rgba[t:b, l:r])
+    m = mask_full[t:b, l:r]
+    crop.putalpha(Image.fromarray((m * 255).astype(np.uint8)))
+
+    cw, ch = crop.size
+    nw, nh = max(1, round(cw * scale)), max(1, round(ch * scale))
+    crop = crop.resize((nw, nh), Image.LANCZOS)
+
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    x = (size - nw) // 2
+    lift = round((row_base_b - b) * scale)  # 바닥 위로 떠 있는 높이
+    y = (size - margin - nh) - lift
+    canvas.paste(crop, (x, y), crop)
+    return canvas
+
+
 def quantize(img, colors):
     """알파 보존하며 RGB만 팔레트 양자화 (디더 없음)."""
     if colors <= 0:
@@ -171,8 +192,9 @@ def main():
                          "떨어진 부가효과(반짝이/불꽃/번개/얼음/안개/광휘)도 프레임에 포함")
     ap.add_argument("--rows", type=int, default=0,
                     help="행 수(격자 모드). 0이면 names/cols 로 추정(없으면 1=단일 스트립)")
-    ap.add_argument("--anchor", choices=["bottom", "center"], default="bottom",
-                    help="bottom=바닥 기준(애니 프레임 권장), center=정중앙")
+    ap.add_argument("--anchor", choices=["bottom", "center", "preserve"], default="bottom",
+                    help="bottom=바닥 기준(제자리 동작), center=정중앙, "
+                         "preserve=행 공통 바닥 기준 수직위치 보존(점프/이동 동작; --cols 필요)")
     ap.add_argument("--per-frame-fit", action="store_true",
                     help="끄면(기본) 공통 배율 사용 → 프레임 간 크기 일관. 켜면 각자 꽉 채움")
     ap.add_argument("--preview", default="")
@@ -196,18 +218,37 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     print(f"탐지된 프레임: {len(cells)}개")
 
-    # 공통 배율: 모든 프레임 중 최대 폭/높이가 캔버스에 들어가도록 (크기 일관 유지)
     target = args.size - 2 * args.margin
-    max_w = max(r - l for (l, t, r, b) in cells)
-    max_h = max(b - t for (l, t, r, b) in cells)
-    shared_scale = min(target / max_w, target / max_h)
+
+    if args.anchor == "preserve":
+        if args.cols <= 0:
+            print("⚠️  --anchor preserve 는 --cols(행당 프레임 수) 필요.", file=sys.stderr)
+            sys.exit(1)
+        cols = args.cols
+        rows_cells = [cells[i:i + cols] for i in range(0, len(cells), cols)]
+        # 공통 배율: 최대 폭 + 행별 수직 점프 범위(바닥~정점) 모두 캔버스에 들어가게
+        w_extent = max(r - l for (l, t, r, b) in cells)
+        h_extent = max(max(b for (_, _, _, b) in rc) - min(t for (_, t, _, _) in rc)
+                       for rc in rows_cells)
+        shared_scale = min(target / w_extent, target / h_extent)
+        # (box, 행 공통 바닥) 평탄화 — cells 와 같은 읽기 순서
+        placements = [(box, max(b for (_, _, _, b) in rc)) for rc in rows_cells for box in rc]
+    else:
+        max_w = max(r - l for (l, t, r, b) in cells)
+        max_h = max(b - t for (l, t, r, b) in cells)
+        shared_scale = min(target / max_w, target / max_h)
+        placements = [(box, None) for box in cells]
 
     frames = []
-    for i, box in enumerate(cells):
+    for i, (box, row_base_b) in enumerate(placements):
         name = names[i] if i < len(names) else f"frame_{i}"
         l, t, r, b = box
-        scale = min(target / (r - l), target / (b - t)) if args.per_frame_fit else shared_scale
-        frame = quantize(fit_into(rgba, mask, box, args.size, args.margin, scale, args.anchor), args.colors)
+        if args.anchor == "preserve":
+            frame = place_preserve(rgba, mask, box, args.size, args.margin, shared_scale, row_base_b)
+        else:
+            scale = min(target / (r - l), target / (b - t)) if args.per_frame_fit else shared_scale
+            frame = fit_into(rgba, mask, box, args.size, args.margin, scale, args.anchor)
+        frame = quantize(frame, args.colors)
         out_path = os.path.join(args.out, f"{name}.png")
         frame.save(out_path)
         frames.append(frame)
