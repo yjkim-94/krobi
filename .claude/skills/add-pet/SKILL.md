@@ -15,6 +15,11 @@ consistency comes from (a) the locked rules in `src/assets/pets/pet_design.md`,
 always injected, and (b) attaching a reference image (style sibling, or the
 previous evolution stage).
 
+## References
+
+- Animation prompt blocks (INVARIANTS + MOTION): `references/animation-prompts.md`
+- File templates (manifest / species.json / catalog.json): `references/templates.md`
+
 ## Evolution model (per species: 7 forms)
 
 ```
@@ -91,7 +96,7 @@ checkpoint.
 `Read` `src/assets/pets/pet_design.md` and inject it verbatim. For each of the 4
 animations, output a ready-to-paste prompt =
 **pet_design.md rules + Reference line + that animation's INVARIANTS+MOTION block**
-(blocks below), with the form's concept substituted into the Style Bible's
+(blocks in `references/animation-prompts.md`), with the form's concept substituted into the Style Bible's
 `Creature:` line.
 
 Per-form reference image:
@@ -135,9 +140,10 @@ ask the user to regenerate with clearer spacing / corrected order.
 
 ### Step 6 — Write a draft manifest (frames = frame names)
 
-Create `src/assets/pets/<species>/<form>/manifest.json` from the **draft template**
-below, with `frames` as the extracted frame file names (the next step rewrites them
-to cell indices). Set `id` to `<species>/<form>` and `frameSize` to the form's size.
+Create `src/assets/pets/<species>/<form>/manifest.json` from the draft template in
+`references/templates.md`, with `frames` as the extracted frame file names (the next
+step rewrites them to cell indices). Set `id` to `<species>/<form>` and `frameSize`
+to the form's size.
 
 ### Step 7 — Pack into a single sheet
 
@@ -149,16 +155,17 @@ tools/venv/bin/python tools/pack_sheet.py src/assets/pets/<species>/<form> --col
 ```
 
 This deletes the individual frame PNGs, leaving just `sheet.png` + `manifest.json`
-(the form's drop-in asset). See the packed example below.
+(the form's drop-in asset). See the packed example in `references/templates.md`.
 
 ### Step 8 — Write/update species.json and catalog.json
 
-- `src/assets/pets/<species>/species.json` — from the template below. Fill `forms`
-  with every form you intend (declare the tree even if some art is pending). Keep
-  `condition.stat`/`gte` as abstract placeholders.
+- `src/assets/pets/<species>/species.json` — from the species.json template in
+  `references/templates.md`. Fill `forms` with every form you intend (declare the tree
+  even if some art is pending). Keep `condition.stat`/`gte` as abstract placeholders.
 - Append the species to `src/assets/pets/catalog.json` (`branches` mirrors
-  `branchWhitelist`). The file is `{ "species": [ … ] }`; push the new entry into the
-  `species` array. Skip if the entry already exists.
+  `branchWhitelist`). Use the catalog.json entry template in `references/templates.md`.
+  The file is `{ "species": [ … ] }`; push the new entry into the `species` array.
+  Skip if the entry already exists.
 
 ### Step 9 — Done
 
@@ -166,125 +173,6 @@ The species folder now matches the app's contract. Commit each form's `sheet.png
 manifest.json + species.json + catalog.json.
 
 ---
-
-## Animation prompt blocks (INVARIANTS + MOTION)
-
-Each strip is horizontal, frames left→right, evenly spaced, equal cell size, same
-baseline. INVARIANTS lock what must not change; MOTION is the per-frame storyboard
-(numbered, causal order — see pet_design.md §2).
-
-**idle (8 frames, breathing loop)**
-```
-[FRAME STRIP] 8 frames, evenly spaced, same baseline.
-[INVARIANTS — identical in all 8] same creature, colors, edges, overall size,
-ground position, camera. Only the body silhouette changes per MOTION.
-[MOTION — gentle breathing, one smooth loop] F1: neutral resting. F2: exhale, slightly
-squashed (shorter/wider). F3: deeper squash. F4: deepest squash (lowest, widest). F5:
-rising back toward neutral. F6: inhale, slightly stretched (taller/narrower). F7: more
-stretch. F8: peak stretch (tallest, narrowest). Loops back to F1 seamlessly.
-```
-
-**eat (8 frames, plays once)**
-```
-[FRAME STRIP] 8 frames, evenly spaced, same baseline.
-[INVARIANTS — identical in all 8] same creature, colors, edges, overall size,
-ground position, camera. Only mouth/cheeks/eyes/head-lean (and the food shrinking) change.
-[MOTION — eating, one continuous sequence] F1: mouth closed, notices food. F2: leans in,
-mouth starting to open. F3: mouth wide open about to bite. F4: chomp down, food bitten
-smaller. F5: cheeks puffed, chewing, eyes squint happily. F6: chewing (other side). F7:
-swallow, eyes soften. F8: mouth closed, satisfied content smile.
-```
-
-**happy (8 frames, plays once)**
-```
-[FRAME STRIP] 8 frames, evenly spaced, same baseline.
-[INVARIANTS — identical in all 8] same creature, colors, edges, size, camera.
-Only pose/vertical position and small sparkle FX change per MOTION.
-[MOTION — one joyful hop] F1: neutral, happy. F2: crouch/squash, anticipating. F3: deeper
-crouch. F4: push off, body stretching upward. F5: airborne peak, stretched, small sparkles
-around it. F6: starting to descend. F7: descending faster. F8: landing squash, big smile.
-```
-
-**sad (8 frames, loop)**
-```
-[FRAME STRIP] 8 frames, evenly spaced, same baseline.
-[INVARIANTS — identical in all 8] same creature, colors, edges, size, camera.
-Only droop, eyes, and a tear change per MOTION.
-[MOTION — slow sad loop] F1: drooped, downturned mouth, sad eyes. F2: droops a little
-more. F3: deeper droop. F4: deepest droop, a tear welling at the eye. F5: tear slides
-down. F6: tear drips off. F7: small sniff, slight settle. F8: breath in, slight rise.
-Loops back to F1 slowly.
-```
-
-## manifest.json draft template (per form — before packing)
-
-`frames` are frame file names; `pack_sheet.py` rewrites them to cell indices and adds
-`sheet` + `columns`.
-
-```json
-{
-  "id": "<species>/<form>",
-  "frameSize": 64,
-  "displayScale": 2,
-  "animations": {
-    "idle":  { "frames": ["idle_0", "idle_1", "idle_2", "idle_3", "idle_4", "idle_5", "idle_6", "idle_7"], "fps": 8, "loop": true },
-    "eat":   { "frames": ["eat_0", "eat_1", "eat_2", "eat_3", "eat_4", "eat_5", "eat_6", "eat_7"], "fps": 10, "loop": false, "then": "idle" },
-    "happy": { "frames": ["happy_0", "happy_1", "happy_2", "happy_3", "happy_4", "happy_5", "happy_6", "happy_7"], "fps": 10, "loop": false, "then": "idle" },
-    "sad":   { "frames": ["sad_0", "sad_1", "sad_2", "sad_3", "sad_4", "sad_5", "sad_6", "sad_7"], "fps": 4, "loop": true }
-  }
-}
-```
-
-After `pack_sheet.py` (columns 8 → 4 rows), the manifest is index-based:
-
-```json
-{
-  "id": "<species>/<form>",
-  "frameSize": 64,
-  "displayScale": 2,
-  "sheet": "sheet.png",
-  "columns": 8,
-  "animations": {
-    "idle":  { "frames": [0, 1, 2, 3, 4, 5, 6, 7], "fps": 8, "loop": true },
-    "eat":   { "frames": [8, 9, 10, 11, 12, 13, 14, 15], "fps": 10, "loop": false, "then": "idle" },
-    "happy": { "frames": [16, 17, 18, 19, 20, 21, 22, 23], "fps": 10, "loop": false, "then": "idle" },
-    "sad":   { "frames": [24, 25, 26, 27, 28, 29, 30, 31], "fps": 4, "loop": true }
-  }
-}
-```
-
-## species.json template
-
-```json
-{
-  "id": "<species>",
-  "archetype": "<archetype>",
-  "branchWhitelist": ["<A>", "<B>", "<C>"],
-  "forms": {
-    "stage1":     { "frameSize": 64 },
-    "stage2-<A>": { "frameSize": 64, "from": "stage1", "condition": { "stat": "<catA>", "gte": 100 } },
-    "stage2-<B>": { "frameSize": 64, "from": "stage1", "condition": { "stat": "<catB>", "gte": 100 } },
-    "stage2-<C>": { "frameSize": 64, "from": "stage1", "condition": { "stat": "<catC>", "gte": 100 } },
-    "stage3-<A>": { "frameSize": 96, "from": "stage2-<A>", "condition": { "stat": "<catA>", "gte": 300 } },
-    "stage3-<B>": { "frameSize": 96, "from": "stage2-<B>", "condition": { "stat": "<catB>", "gte": 300 } },
-    "stage3-<C>": { "frameSize": 96, "from": "stage2-<C>", "condition": { "stat": "<catC>", "gte": 300 } }
-  }
-}
-```
-
-## catalog.json entry template
-
-```json
-{
-  "id": "<species>",
-  "displayName": "<name>",
-  "archetype": "<archetype>",
-  "concept": "<one-line concept>",
-  "claimedMotifs": ["<motif>", "..."],
-  "claimedColors": ["<color>", "..."],
-  "branches": ["<A>", "<B>", "<C>"]
-}
-```
 
 ## Notes
 
