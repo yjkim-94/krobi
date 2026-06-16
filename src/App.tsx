@@ -4,7 +4,7 @@ import "./App.css";
 import manifest from "./assets/pets/krobi/stage1/manifest.json";
 import type { AnimationName, PetManifest } from "./pet/types";
 import { baseAnimation } from "./pet/animation";
-import { krobiFrameUrls } from "./pet/frameUrls";
+import { krobiSheetUrl } from "./pet/frameUrls";
 import { usePetAnimation } from "./pet/usePetAnimation";
 import { Pet } from "./pet/Pet";
 
@@ -147,9 +147,7 @@ function App() {
   const base: AnimationName = pet
     ? baseAnimation(pet.status.hunger, pet.status.cleanliness)
     : "idle";
-  const frameUrl = usePetAnimation(PET, krobiFrameUrls, base, oneShot, () =>
-    setOneShot(null),
-  );
+  const cell = usePetAnimation(PET, base, oneShot, () => setOneShot(null));
 
   if (!pet) return null;
 
@@ -167,7 +165,12 @@ function App() {
         data-tauri-drag-region
         className="flex flex-1 items-center justify-center"
       >
-        <Pet frameUrl={frameUrl} size={PET.frameSize * PET.displayScale} />
+        <Pet
+          sheetUrl={krobiSheetUrl}
+          cell={cell}
+          columns={PET.columns}
+          size={PET.frameSize * PET.displayScale}
+        />
       </div>
 
       {/* 상태 바 */}

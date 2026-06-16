@@ -1,14 +1,5 @@
-// Vite가 빌드 시 각 PNG를 URL로 변환해 eager 로드한다.
-const modules = import.meta.glob("../assets/pets/krobi/stage1/*.png", {
-  eager: true,
-  query: "?url",
-  import: "default",
-}) as Record<string, string>;
+// Vite가 빌드 시 스프라이트 시트 PNG를 URL로 변환한다.
+import sheetUrl from "../assets/pets/krobi/stage1/sheet.png?url";
 
-/** base 파일명(확장자 제외) -> 에셋 URL */
-export const krobiFrameUrls: Record<string, string> = Object.fromEntries(
-  Object.entries(modules).map(([path, url]) => {
-    const name = path.split("/").pop()!.replace(/\.png$/, "");
-    return [name, url];
-  }),
-);
+/** krobi stage1 스프라이트 시트 에셋 URL */
+export const krobiSheetUrl: string = sheetUrl;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { baseAnimation, advanceFrame, resolveFrameUrls } from "./animation";
+import { baseAnimation, advanceFrame, cellPosition } from "./animation";
 
 describe("baseAnimation", () => {
   it("스탯이 건강하면 idle", () => {
@@ -26,16 +26,11 @@ describe("advanceFrame", () => {
   });
 });
 
-describe("resolveFrameUrls", () => {
-  const urls = { idle_0: "/a.png", idle_1: "/b.png" };
-  it("프레임 이름을 URL로 매핑", () => {
-    expect(
-      resolveFrameUrls({ frames: ["idle_0", "idle_1"], fps: 4, loop: true }, urls),
-    ).toEqual(["/a.png", "/b.png"]);
-  });
-  it("없는 프레임이면 throw", () => {
-    expect(() =>
-      resolveFrameUrls({ frames: ["nope"], fps: 4, loop: true }, urls),
-    ).toThrow(/Missing frame/);
+describe("cellPosition", () => {
+  it("셀 인덱스를 격자 열/행으로 변환", () => {
+    expect(cellPosition(0, 8)).toEqual({ col: 0, row: 0 });
+    expect(cellPosition(7, 8)).toEqual({ col: 7, row: 0 });
+    expect(cellPosition(8, 8)).toEqual({ col: 0, row: 1 });
+    expect(cellPosition(23, 8)).toEqual({ col: 7, row: 2 });
   });
 });

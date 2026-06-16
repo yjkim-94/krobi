@@ -1,8 +1,8 @@
 export type AnimationName = "idle" | "eat" | "happy" | "sad";
 
 export interface AnimationDef {
-  /** 재생 순서대로의 프레임 base 이름 (확장자 제외) */
-  frames: string[];
+  /** 재생 순서대로의 시트 셀 인덱스 (좌→우, 위→아래) */
+  frames: number[];
   fps: number;
   loop: boolean;
   /** loop:false 종료 후 전환할 애니 (선택) */
@@ -13,6 +13,10 @@ export interface PetManifest {
   id: string;
   frameSize: number;
   displayScale: number;
+  /** 폼 폴더 내 스프라이트 시트 파일명 */
+  sheet: string;
+  /** 시트 격자의 열 수 (셀 인덱스 → 행/열 변환에 사용) */
+  columns: number;
   animations: Record<AnimationName, AnimationDef>;
 }
 

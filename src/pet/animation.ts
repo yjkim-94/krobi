@@ -31,14 +31,10 @@ export function advanceFrame(
     : { index: frameCount - 1, finished: true };
 }
 
-/** 프레임 base 이름 배열을 URL 배열로 변환 */
-export function resolveFrameUrls(
-  def: AnimationDef,
-  urls: Record<string, string>,
-): string[] {
-  return def.frames.map((name) => {
-    const url = urls[name];
-    if (!url) throw new Error(`Missing frame asset: ${name}`);
-    return url;
-  });
+/** 시트 셀 인덱스를 격자 좌표(열, 행)로 변환 */
+export function cellPosition(
+  cell: number,
+  columns: number,
+): { col: number; row: number } {
+  return { col: cell % columns, row: Math.floor(cell / columns) };
 }
