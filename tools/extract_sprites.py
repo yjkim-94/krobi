@@ -74,6 +74,47 @@ def find_cells(mask, min_frac):
     return cells
 
 
+def split_axis(flags, count, noise=2):
+    """1D 전경 flags 를 정확히 count개 구간으로 분할.
+
+    전경 run들 사이 간격 중 **가장 큰 (count-1)개에서만** 자른다 → 그보다 작은
+    내부 간격(본체↔부가효과: 반짝이/불꽃/번개/얼음/안개/광휘 등)은 한 구간에 묶여
+    잘리지 않는다. noise(px) 이하 폭의 run은 1px 잡티로 보고 무시.
+    반환: [(start, end_exclusive), ...] (구간 수 = min(count, run 수))."""
+    spans = runs(flags, noise)
+    if not spans:
+        return []
+    if count <= 1 or len(spans) == 1:
+        return [(spans[0][0], spans[-1][1])]
+    # span[i] 와 span[i+1] 사이 간격 폭
+    gaps = [(spans[i + 1][0] - spans[i][1], i) for i in range(len(spans) - 1)]
+    n_cuts = min(count - 1, len(gaps))
+    # 가장 큰 간격부터 n_cuts개 선택 → 그 뒤에서 자름
+    cut_after = sorted(i for _, i in sorted(gaps, key=lambda g: (-g[0], g[1]))[:n_cuts])
+    out, start = [], 0
+    for ca in cut_after:
+        out.append((spans[start][0], spans[ca][1]))
+        start = ca + 1
+    out.append((spans[start][0], spans[-1][1]))
+    return out
+
+
+def find_cells_grid(mask, rows, cols):
+    """행 수·열 수가 알려진 격자 분할(largest-gap). 떨어진 부가효과를 해당 프레임에 포함.
+    셀 bbox 리스트를 읽기 순서(행→열)로 반환."""
+    cells = []
+    for (y0, y1) in split_axis(mask.any(axis=1), rows):
+        band = mask[y0:y1]
+        for (x0, x1) in split_axis(band.any(axis=0), cols):
+            sub = mask[y0:y1, x0:x1]
+            ys = np.where(sub.any(axis=1))[0]
+            xs = np.where(sub.any(axis=0))[0]
+            if len(ys) == 0 or len(xs) == 0:
+                continue
+            cells.append((x0 + xs[0], y0 + ys[0], x0 + xs[-1] + 1, y0 + ys[-1] + 1))
+    return cells
+
+
 def fit_into(img_rgba, mask_full, box, size, margin, scale, anchor):
     """box 영역을 크롭해 공통 scale로 축소하고 size×size 캔버스에 배치.
     anchor='bottom'이면 바닥-가운데 기준(애니 프레임용), 'center'면 정중앙."""
@@ -124,7 +165,12 @@ def main():
     ap.add_argument("--colors", type=int, default=32, help="0 이면 양자화 안 함")
     ap.add_argument("--key", default="ff00ff", help="배경 키 색(hex) 또는 'auto'")
     ap.add_argument("--tol", type=float, default=70, help="배경 색 허용 거리")
-    ap.add_argument("--min-frac", type=float, default=0.02, help="띠/간격 최소 비율")
+    ap.add_argument("--min-frac", type=float, default=0.02, help="띠/간격 최소 비율 (auto 모드)")
+    ap.add_argument("--cols", type=int, default=0,
+                    help="행당 프레임 수. >0 이면 격자 모드(largest-gap)로 분할 → "
+                         "떨어진 부가효과(반짝이/불꽃/번개/얼음/안개/광휘)도 프레임에 포함")
+    ap.add_argument("--rows", type=int, default=0,
+                    help="행 수(격자 모드). 0이면 names/cols 로 추정(없으면 1=단일 스트립)")
     ap.add_argument("--anchor", choices=["bottom", "center"], default="bottom",
                     help="bottom=바닥 기준(애니 프레임 권장), center=정중앙")
     ap.add_argument("--per-frame-fit", action="store_true",
@@ -137,13 +183,17 @@ def main():
     mask = build_foreground_mask(img, args.key, args.tol)
     rgba = np.asarray(img.convert("RGBA"))
 
-    cells = find_cells(mask, args.min_frac)
+    names = [n.strip() for n in args.names.split(",") if n.strip()]
+    if args.cols > 0:
+        rows = args.rows if args.rows > 0 else (max(1, round(len(names) / args.cols)) if names else 1)
+        cells = find_cells_grid(mask, rows, args.cols)
+    else:
+        cells = find_cells(mask, args.min_frac)
     if not cells:
         print("⚠️  전경 덩어리를 못 찾음. --key/--tol 조정 필요.", file=sys.stderr)
         sys.exit(1)
 
     os.makedirs(args.out, exist_ok=True)
-    names = [n.strip() for n in args.names.split(",") if n.strip()]
     print(f"탐지된 프레임: {len(cells)}개")
 
     # 공통 배율: 모든 프레임 중 최대 폭/높이가 캔버스에 들어가도록 (크기 일관 유지)

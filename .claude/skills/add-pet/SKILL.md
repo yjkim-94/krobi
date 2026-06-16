@@ -122,17 +122,36 @@ user copies one whole block into Nano Banana as-is. Do NOT put workflow/operatio
 this file (no extract/pack commands, no reference-cropping how-to, no "save to _incoming"
 notes — those live in this skill). Write it in English.
 
-### Step 4 — Extract each strip into the form folder
+### Step 4 — Extract into the form folder
 
 `--size` = that form's frameSize from species.json (stage1/2 = 64, stage3 = 96 in
-the krobi example; adjust per species). Example:
+the krobi example; adjust per species).
+
+**Always use grid mode (`--rows`/`--cols`).** It splits each row at only the largest
+`cols-1` gaps, so detached auxiliary FX (sparkles, flames, lightning, ice, mist, eerie
+aura, radiance/glow) stay merged into their frame instead of being split off or clipped.
+Auto mode (no `--cols`) splits on every gap and will fragment such FX — do not use it.
+
+Single strip (one animation per image) → `--rows 1 --cols 8`:
 
 ```bash
 tools/venv/bin/python tools/extract_sprites.py \
   src/assets/pets/_incoming/<species>_<form>_idle.png \
   --out src/assets/pets/<species>/<form> --names idle_0,idle_1,idle_2,idle_3,idle_4,idle_5,idle_6,idle_7 \
-  --size <frameSize> --colors 32 --tol 120 --anchor bottom \
+  --size <frameSize> --colors 32 --tol 120 --anchor bottom --rows 1 --cols 8 \
   --preview src/assets/pets/_incoming/<species>_<form>_idle_preview.png
+```
+
+Full sheet (all 4 animations in one image, 4 rows × 8) → `--rows 4 --cols 8`, with all 32
+names in reading order (idle row, eat row, happy row, sad row):
+
+```bash
+tools/venv/bin/python tools/extract_sprites.py \
+  src/assets/pets/_incoming/<species>_<form>_sheet.png \
+  --out src/assets/pets/<species>/<form> \
+  --names idle_0,idle_1,idle_2,idle_3,idle_4,idle_5,idle_6,idle_7,eat_0,eat_1,eat_2,eat_3,eat_4,eat_5,eat_6,eat_7,happy_0,happy_1,happy_2,happy_3,happy_4,happy_5,happy_6,happy_7,sad_0,sad_1,sad_2,sad_3,sad_4,sad_5,sad_6,sad_7 \
+  --size <frameSize> --colors 32 --tol 120 --anchor bottom --rows 4 --cols 8 \
+  --preview src/assets/pets/_incoming/<species>_<form>_preview.png
 ```
 
 Names per animation (8 frames each):
