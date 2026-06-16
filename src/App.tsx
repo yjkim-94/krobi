@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { load, type Store } from "@tauri-apps/plugin-store";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { LogicalSize } from "@tauri-apps/api/dpi";
+import { Menu } from "@tauri-apps/api/menu";
 import "./App.css";
 import manifest from "./assets/pets/krobi/stage1/manifest.json";
 import type { AnimationName, PetManifest } from "./pet/types";
@@ -12,7 +13,6 @@ import { Pet } from "./pet/Pet";
 import { useWindowDrag } from "./pet/useWindowDrag";
 import { loadImage, measureBounds } from "./pet/sheetImage";
 import { fitWindowSize, fitScale, boxSize, type Box } from "./pet/contentBounds";
-import { ContextMenu } from "./ui/ContextMenu";
 import { ResizeOverlay } from "./ui/ResizeOverlay";
 
 const PET = manifest as PetManifest;
@@ -71,7 +71,6 @@ function App() {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [box, setBox] = useState<Box | null>(null);
   const [inner, setInner] = useState({ w: window.innerWidth, h: window.innerHeight });
-  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const [resizing, setResizing] = useState(false);
 
   async function persistPet(next: PetData) {
@@ -163,6 +162,17 @@ function App() {
     });
   }
 
+  // 네이티브 OS 팝업 메뉴 — 투명 창 크기와 무관해 잘리지 않는다.
+  async function showMenu() {
+    const menu = await Menu.new({
+      items: [
+        { id: "feed", text: "밥주기", action: () => feed() },
+        { id: "resize", text: "크기 조절", action: () => setResizing(true) },
+      ],
+    });
+    await menu.popup();
+  }
+
   async function commitSize() {
     const store = storeRef.current;
     if (store) {
@@ -187,7 +197,7 @@ function App() {
       onMouseUp={drag.onMouseUp}
       onContextMenu={(e) => {
         e.preventDefault();
-        if (!resizing) setMenu({ x: e.clientX, y: e.clientY });
+        if (!resizing) void showMenu();
       }}
       className="relative flex h-screen w-screen items-center justify-center bg-transparent"
       style={{ userSelect: "none" }}
@@ -201,18 +211,6 @@ function App() {
         destW={destW}
         destH={destH}
       />
-
-      {menu && (
-        <ContextMenu
-          x={menu.x}
-          y={menu.y}
-          onClose={() => setMenu(null)}
-          items={[
-            { label: "밥주기", onClick: feed },
-            { label: "크기 조절", onClick: () => setResizing(true) },
-          ]}
-        />
-      )}
 
       {resizing && (
         <ResizeOverlay

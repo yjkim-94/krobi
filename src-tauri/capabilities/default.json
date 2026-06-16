@@ -11,6 +11,10 @@
     "core:window:allow-set-size",
     "core:window:allow-inner-size",
     "core:window:allow-set-resizable",
-    "core:window:allow-scale-factor"
+    "core:window:allow-scale-factor",
+    "core:menu:default",
+    "core:menu:allow-new",
+    "core:menu:allow-append",
+    "core:menu:allow-popup"
   ]
 }
