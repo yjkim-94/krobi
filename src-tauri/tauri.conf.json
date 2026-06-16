@@ -17,7 +17,7 @@
         "title": "Krobi",
         "width": 200,
         "height": 240,
-        "resizable": false,
+        "resizable": true,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true
