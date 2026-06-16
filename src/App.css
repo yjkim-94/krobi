@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* 진화 이펙트: 파티클 버스트 + 차징 펄스 */
+@keyframes krobi-spark-burst {
+  0%   { transform: translate(0, 0) scale(1);   opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.3); opacity: 0; }
+}
+
+/* 진화 준비 신호: 펫 주변을 떠다니는 푸른 글로우 동그라미 */
+@keyframes krobi-orb-float {
+  0%   { transform: translate(0, 0) scale(0.8);  opacity: 0.2; }
+  50%  { transform: translate(var(--fx), var(--fy)) scale(1.12); opacity: 0.9; }
+  100% { transform: translate(0, 0) scale(0.8);  opacity: 0.2; }
+}
+
 /* 보강 #2: 투명창을 위해 모든 배경을 투명하게 */
 html,
 body,
