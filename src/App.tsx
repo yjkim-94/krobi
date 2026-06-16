@@ -48,6 +48,27 @@ type WindowSize = { width: number; height: number };
 
 const clampMax100 = (v: number) => Math.min(100, v);
 const delay = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+// 다음 paint 까지 기다린다(상태 변경이 화면에 실제 반영된 뒤 다음 단계로). rAF 2틱 = 한 번은 확실히 그려짐.
+const nextPaint = () =>
+  new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+
+// 창 리사이즈가 끝나고 레이아웃(중앙 재정렬)이 화면에 반영될 때까지 기다린다.
+// 고정 delay 로 추측하지 않고 실제 resize 이벤트 + 한 프레임 더(rAF)로 확정. timeout 은 안전망.
+function waitForResizeSettled(timeoutMs = 800): Promise<void> {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      window.removeEventListener("resize", onResize);
+      resolve();
+    };
+    const onResize = () =>
+      requestAnimationFrame(() => requestAnimationFrame(finish));
+    window.addEventListener("resize", onResize);
+    window.setTimeout(finish, timeoutMs);
+  });
+}
 
 function App() {
   const storeRef = useRef<Store | null>(null);
@@ -220,14 +241,22 @@ function App() {
     }
   }
 
-  // 진화 연출 타임라인: hidden(펫·글로우 숨긴 채 창 확장) → charge(섬광·파티클 모임) → flash(화이트아웃, 이때 폼 교체) → reveal(흰빛 사라지며 등장) → hidden(숨긴 채 창 원복).
-  // 창을 키우려면 창이 좌상단으로 이동하고, 그동안 화면이 한 프레임 따라 끌린다. 그 순간만 펫을 숨겨 끌림을 안 보이게 한다.
+  // 진화 타임라인: 상태창 켬/끔 상관없이 동일한 단일 경로. 창 크기는 grow/restore 로만 바꾸고,
+  // 상태창은 진화 동안 렌더에서만 숨겼다(panelOpen) idle 에 다시 보인다. 펫 숨김이 paint된 뒤에야
+  // 창을 키워(중간 튐 가림), resize 가 화면에 반영(중앙 재정렬)된 걸 확인하고 펫을 내보낸다.
   function evolve() {
     if (!pet || !canEvolve(SPECIES, pet.form, pet.exp) || evoPhase !== "idle") return;
     void (async () => {
+      // ② 펫·상태창 숨김 → 숨김이 실제 화면에 그려질 때까지 대기(이 렌더에서 펫 크기도 frozen 으로 고정).
       setEvoPhase("hidden");
+      await nextPaint();
+
+      // ③ 창 확장 → 중앙 재정렬이 반영될 때까지 대기(고정 delay 가 아니라 실제 resize 이벤트로).
+      const grown = waitForResizeSettled();
       await growForEvo();
-      await delay(150); // 창 이동·중앙 재정렬이 안정될 때까지 잠깐(찰나라 안 보임)
+      await grown;
+
+      // ④/⑤ 펫 등장 + 진화 연출
       setEvoPhase("charge");
       await delay(1350);
       setEvoPhase("flash");
@@ -241,8 +270,12 @@ function App() {
       await delay(750);
       setEvoPhase("reveal");
       await delay(1650);
+
+      // ⑥ 창 원복(펫은 frozen 유지하다 원복 후 idle) → ⑦ idle 이 되면 상태창이 다시 보인다.
+      const restored = waitForResizeSettled();
+      await restoreFromEvo();
+      await restored;
       setEvoPhase("idle");
-      void restoreFromEvo();
       setOneShot("happy");
     })();
   }
@@ -294,6 +327,9 @@ function App() {
 
   // 진화 가능 + 평상시(idle)일 때만 푸른 글로우 오라를 띄운다.
   const evoReady = canEvolve(SPECIES, pet.form, pet.exp) && evoPhase === "idle";
+  // 상태창은 평상시(idle)에만 보인다 — 진화 동안엔 창을 안 건드리고 렌더에서만 숨겨 펫이 중앙에 오게 한다.
+  // (availH 는 showStatus 기준 유지 → 숨김 첫 렌더에서 펫 frozen 크기가 평상시와 동일하게 잡힌다.)
+  const panelOpen = showStatus && evoPhase === "idle";
 
   // 진화 페이즈별 펫 필터: flash=화이트아웃, charge=골드 글로우, 그 외=평소(placeholder 색조).
   const petFilter =
@@ -313,9 +349,9 @@ function App() {
         if (!resizing) void showMenu();
       }}
       className="relative flex h-screen w-screen items-center justify-center bg-transparent"
-      style={{ userSelect: "none", paddingTop: showStatus ? PANEL_H : 0 }}
+      style={{ userSelect: "none", paddingTop: panelOpen ? PANEL_H : 0 }}
     >
-      {showStatus && <StatusPanel pet={pet} species={SPECIES} />}
+      {panelOpen && <StatusPanel pet={pet} species={SPECIES} />}
 
       {evoReady && <EvolveReadyFx />}
 

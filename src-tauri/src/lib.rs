@@ -30,51 +30,10 @@ fn get_frontmost_app() -> Option<FrontmostApp> {
     None
 }
 
-// 진화 연출용: 창 프레임(위치+크기)을 NSWindow.setFrame 한 번으로 원자적으로 바꿔 사방 pad 만큼 키운다.
-// Tauri 의 set_size/set_position 은 별개의 Cocoa 호출이라 size→position 사이에 한 프레임이 끼어
-// 펫이 큰 창의 좌상단에 잠깐 보였다가 중앙으로 튀었다. setFrame 단일 호출은 한 디스플레이 사이클에 합쳐져 튐이 없다.
-// 반환값은 원래 NSWindow 프레임 (x, y, w, h, Cocoa 좌표) — JS 는 불투명하게 보관했다가 evolve_restore 로 되돌린다.
-#[cfg(target_os = "macos")]
-#[tauri::command]
-fn evolve_grow(window: tauri::WebviewWindow, pad: f64) -> Result<(f64, f64, f64, f64), String> {
-    use objc2_app_kit::NSWindow;
-    use objc2_foundation::{NSPoint, NSRect, NSSize};
-
-    let ptr = window.ns_window().map_err(|e| e.to_string())? as usize;
-    let (tx, rx) = std::sync::mpsc::channel();
-    window
-        .run_on_main_thread(move || {
-            let ns: &NSWindow = unsafe { &*(ptr as *const NSWindow) };
-            let f = ns.frame();
-            // 사방 대칭 확장 → 중심 고정(좌표계 방향과 무관). Cocoa 좌표라 그대로 되돌릴 수 있다.
-            let grown = NSRect::new(
-                NSPoint::new(f.origin.x - pad, f.origin.y - pad),
-                NSSize::new(f.size.width + pad * 2.0, f.size.height + pad * 2.0),
-            );
-            unsafe { ns.setFrame_display_animate(grown, true, false) };
-            let _ = tx.send((f.origin.x, f.origin.y, f.size.width, f.size.height));
-        })
-        .map_err(|e| e.to_string())?;
-    rx.recv().map_err(|e| e.to_string())
-}
-
-#[cfg(target_os = "macos")]
-#[tauri::command]
-fn evolve_restore(window: tauri::WebviewWindow, x: f64, y: f64, w: f64, h: f64) -> Result<(), String> {
-    use objc2_app_kit::NSWindow;
-    use objc2_foundation::{NSPoint, NSRect, NSSize};
-
-    let ptr = window.ns_window().map_err(|e| e.to_string())? as usize;
-    window
-        .run_on_main_thread(move || {
-            let ns: &NSWindow = unsafe { &*(ptr as *const NSWindow) };
-            let frame = NSRect::new(NSPoint::new(x, y), NSSize::new(w, h));
-            unsafe { ns.setFrame_display_animate(frame, true, false) };
-        })
-        .map_err(|e| e.to_string())
-}
-
-#[cfg(not(target_os = "macos"))]
+// 진화 연출용: 창을 사방 pad 만큼 키운다. set_size/set_position 은 웹뷰(WKWebView)까지 함께
+// 리사이즈하므로 내용이 새 크기에 맞춰 중앙 재정렬된다(raw NSWindow.setFrame 은 창만 키우고 웹뷰는
+// 옛 크기로 좌상단에 남아 내용이 통째로 좌상단으로 쏠림). 두 단계 사이의 한 프레임 튐은 프런트의 숨김-마스크로 가린다.
+// 반환값은 원래 (x, y, w, h) — 끝나면 evolve_restore 로 되돌린다.
 #[tauri::command]
 fn evolve_grow(window: tauri::WebviewWindow, pad: f64) -> Result<(f64, f64, f64, f64), String> {
     let scale = window.scale_factor().map_err(|e| e.to_string())?;
@@ -91,7 +50,6 @@ fn evolve_grow(window: tauri::WebviewWindow, pad: f64) -> Result<(f64, f64, f64,
     Ok((ox, oy, ow, oh))
 }
 
-#[cfg(not(target_os = "macos"))]
 #[tauri::command]
 fn evolve_restore(window: tauri::WebviewWindow, x: f64, y: f64, w: f64, h: f64) -> Result<(), String> {
     let win = window.clone();
