@@ -3,9 +3,9 @@
   "frameSize": 64,
   "displayScale": 2,
   "animations": {
-    "idle":  { "frames": ["idle_0", "idle_1", "idle_0", "idle_2"], "fps": 4, "loop": true },
-    "eat":   { "frames": ["eat_0", "eat_1", "eat_2", "eat_3"], "fps": 8, "loop": false, "then": "idle" },
-    "happy": { "frames": ["happy_0", "happy_1", "happy_2"], "fps": 8, "loop": false, "then": "idle" },
+    "idle":  { "frames": ["idle_0", "idle_1", "idle_2", "idle_3", "idle_4", "idle_5", "idle_6", "idle_7"], "fps": 8, "loop": true },
+    "eat":   { "frames": ["eat_0", "eat_1", "eat_2", "eat_3", "eat_4", "eat_5", "eat_6", "eat_7"], "fps": 10, "loop": false, "then": "idle" },
+    "happy": { "frames": ["happy_0", "happy_1", "happy_2", "happy_3", "happy_4", "happy_5", "happy_6", "happy_7"], "fps": 10, "loop": false, "then": "idle" },
     "sad":   { "frames": ["sad_0", "sad_1"], "fps": 2, "loop": true }
   }
 }

@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { krobiFrameUrls } from "./frameUrls";
+import manifestJson from "../assets/pets/krobi/stage1/manifest.json";
+import type { PetManifest } from "./types";
+
+const manifest = manifestJson as PetManifest;
 
 describe("krobiFrameUrls", () => {
-  it("loads all 12 krobi frames keyed by base name", () => {
-    const keys = Object.keys(krobiFrameUrls);
-    expect(keys).toHaveLength(12);
-    for (const name of ["idle_0", "idle_1", "idle_2", "eat_3", "happy_2", "sad_1"]) {
-      expect(krobiFrameUrls[name]).toBeTruthy();
+  it("loads every frame referenced by the krobi stage1 manifest", () => {
+    const referenced = new Set(
+      Object.values(manifest.animations).flatMap((a) => a.frames),
+    );
+    expect(referenced.size).toBeGreaterThan(0);
+    for (const name of referenced) {
+      expect(krobiFrameUrls[name], name).toBeTruthy();
     }
   });
 });
