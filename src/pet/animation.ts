@@ -2,13 +2,12 @@ import type { AnimationDef, AnimationName, PetManifest } from "./types";
 
 export const LOW_THRESHOLD = 30;
 
-/** 스탯으로부터 기본(루프) 애니를 결정 */
+/** 포만감으로부터 기본(루프) 애니를 결정 */
 export function baseAnimation(
-  hunger: number,
-  cleanliness: number,
+  satiety: number,
   low: number = LOW_THRESHOLD,
 ): AnimationName {
-  return hunger < low || cleanliness < low ? "sad" : "idle";
+  return satiety < low ? "sad" : "idle";
 }
 
 export function getAnimationDef(

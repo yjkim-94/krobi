@@ -2,15 +2,13 @@ import { describe, it, expect } from "vitest";
 import { baseAnimation, advanceFrame, cellPosition } from "./animation";
 
 describe("baseAnimation", () => {
-  it("스탯이 건강하면 idle", () => {
-    expect(baseAnimation(100, 100)).toBe("idle");
-    expect(baseAnimation(30, 30)).toBe("idle");
+  it("포만감이 임계값 이상이면 idle", () => {
+    expect(baseAnimation(100)).toBe("idle");
+    expect(baseAnimation(30)).toBe("idle");
   });
-  it("hunger가 임계값 미만이면 sad", () => {
-    expect(baseAnimation(29, 100)).toBe("sad");
-  });
-  it("cleanliness가 임계값 미만이면 sad", () => {
-    expect(baseAnimation(100, 10)).toBe("sad");
+  it("포만감이 임계값 미만이면 sad", () => {
+    expect(baseAnimation(29)).toBe("sad");
+    expect(baseAnimation(0)).toBe("sad");
   });
 });
 
