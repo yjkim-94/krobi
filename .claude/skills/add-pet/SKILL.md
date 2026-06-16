@@ -108,8 +108,17 @@ Always tell the user:
 - Generate on solid flat magenta `#ff00ff`, render LARGE / high-res.
 - **Attach the per-form reference image** above so identity/silhouette stays consistent.
 - For sequential actions, keep the numbered storyboard order (pet_design.md §2).
+- **Padding:** leave clear margin around the whole strip — no frame may touch the
+  top/bottom/left/right canvas edge, with even spacing between frames and a gap at both
+  ends. (Frames touching an edge get clipped on extraction.)
 - Save each result to `src/assets/pets/_incoming/<species>_<form>_<anim>.png`
   (e.g. `ember-pup_stage2-dragon_eat.png`).
+
+**Persist the prompts to the form folder.** Write the 4 ready-to-paste prompts (shared
+header = Style Bible + filled `Creature:` line + Reference line, then each animation's
+INVARIANTS+MOTION block, plus the generation settings above) to
+`src/assets/pets/<species>/<form>/prompt.md`. Keeping each form's exact prompt next to its
+art lets the user reopen/copy it and regenerate later. Write it in English.
 
 ### Step 4 — Extract each strip into the form folder
 
