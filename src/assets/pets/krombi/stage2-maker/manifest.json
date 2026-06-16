@@ -1,0 +1,67 @@
+{
+  "id": "krombi/stage2-maker",
+  "frameSize": 64,
+  "displayScale": 2,
+  "sheet": "sheet.png",
+  "columns": 8,
+  "animations": {
+    "idle": {
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "fps": 8,
+      "loop": true
+    },
+    "eat": {
+      "frames": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "fps": 10,
+      "loop": false,
+      "then": "idle"
+    },
+    "happy": {
+      "frames": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "fps": 10,
+      "loop": false,
+      "then": "idle"
+    },
+    "sad": {
+      "frames": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "fps": 4,
+      "loop": true
+    }
+  }
+}
