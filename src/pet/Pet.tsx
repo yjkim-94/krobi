@@ -13,6 +13,7 @@ export function Pet({
   box,
   destW,
   destH,
+  filter = "none",
 }: {
   img: HTMLImageElement;
   cell: number;
@@ -21,6 +22,7 @@ export function Pet({
   box: Box;
   destW: number;
   destH: number;
+  filter?: string;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
 
@@ -42,5 +44,5 @@ export function Pet({
     ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, destW, destH);
   }, [img, cell, columns, cellSize, box, destW, destH]);
 
-  return <canvas ref={ref} style={{ display: "block", userSelect: "none" }} />;
+  return <canvas ref={ref} style={{ display: "block", userSelect: "none", filter }} />;
 }
