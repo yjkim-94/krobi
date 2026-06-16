@@ -114,11 +114,13 @@ Always tell the user:
 - Save each result to `src/assets/pets/_incoming/<species>_<form>_<anim>.png`
   (e.g. `ember-pup_stage2-dragon_eat.png`).
 
-**Persist the prompts to the form folder.** Write the 4 ready-to-paste prompts (shared
-header = Style Bible + filled `Creature:` line + Reference line, then each animation's
-INVARIANTS+MOTION block, plus the generation settings above) to
-`src/assets/pets/<species>/<form>/prompt.md`. Keeping each form's exact prompt next to its
-art lets the user reopen/copy it and regenerate later. Write it in English.
+**Persist the prompts to the form folder.** Write `src/assets/pets/<species>/<form>/prompt.md`
+containing ONLY the paste-ready prompts — one complete, self-contained prompt per animation
+(idle/eat/happy/sad), each a single fenced block = full Style Bible + filled `Creature:`
+line + Reference line + that animation's INVARIANTS+MOTION block + the `Do NOT:` line. The
+user copies one whole block into Nano Banana as-is. Do NOT put workflow/operational text in
+this file (no extract/pack commands, no reference-cropping how-to, no "save to _incoming"
+notes — those live in this skill). Write it in English.
 
 ### Step 4 — Extract each strip into the form folder
 
