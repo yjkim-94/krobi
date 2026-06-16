@@ -113,7 +113,7 @@ the krobi example; adjust per species). Example:
 tools/venv/bin/python tools/extract_sprites.py \
   src/assets/pets/_incoming/<species>_<form>_idle.png \
   --out src/assets/pets/<species>/<form> --names idle_0,idle_1,idle_2,idle_3,idle_4,idle_5,idle_6,idle_7 \
-  --size 64 --colors 32 --tol 120 --anchor bottom \
+  --size <frameSize> --colors 32 --tol 120 --anchor bottom \
   --preview src/assets/pets/_incoming/<species>_<form>_idle_preview.png
 ```
 
@@ -126,7 +126,7 @@ Names per animation (8 frames each):
 ### Step 5 — Inspect (gate)
 
 `Read` each `_preview.png`. Check: correct frame count, **correct causal order**
-(no reversed sequences), solid bodies, clean transparent background, consistent
+(no reversed sequences, see pet_design.md §2), solid bodies, clean transparent background, consistent
 size, bottom-aligned, and identity consistent with the reference. If wrong, tune
 `--tol` (raise to kill leftover shadow; lower if edges get eaten) and re-run, or
 ask the user to regenerate with clearer spacing / corrected order.
@@ -134,7 +134,9 @@ ask the user to regenerate with clearer spacing / corrected order.
 ### Step 6 — Write the manifest for the form
 
 Create `src/assets/pets/<species>/<form>/manifest.json` from the template below.
-Set `id` to `<species>/<form>` and `frameSize` to the form's size.
+Set `id` to `<species>/<form>` and `frameSize` to the form's size. Use the template
+as the basis — do NOT copy `krobi/stage1/manifest.json` (it is the legacy 3/4/3/2
+frame set until krobi is regenerated).
 
 ### Step 7 — Write/update species.json and catalog.json
 
@@ -142,7 +144,8 @@ Set `id` to `<species>/<form>` and `frameSize` to the form's size.
   with every form you intend (declare the tree even if some art is pending). Keep
   `condition.stat`/`gte` as abstract placeholders.
 - Append the species to `src/assets/pets/catalog.json` (`branches` mirrors
-  `branchWhitelist`). Skip if the entry already exists.
+  `branchWhitelist`). The file is `{ "species": [ … ] }`; push the new entry into the
+  `species` array. Skip if the entry already exists.
 
 ### Step 8 — Done
 
@@ -251,7 +254,8 @@ Loops back to F1 slowly.
 
 ## Notes
 
-- `condition.stat` 값은 업무추적 spec 이 확정하기 전까지 placeholder. 임계 숫자도 잠정.
+- `condition.stat` values are placeholders until the work-tracking spec finalizes them;
+  the threshold numbers are provisional too.
 - Existing frames make excellent reference images. Evolutions MUST attach the
   previous stage; consistency from a reference beats text alone.
 - Simpler, rounder creatures reproduce best; complex/humanoid forms need more
