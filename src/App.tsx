@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { load, type Store } from "@tauri-apps/plugin-store";
 import "./App.css";
-import manifest from "./assets/pets/krobi/manifest.json";
+import manifest from "./assets/pets/krobi/stage1/manifest.json";
 import type { AnimationName, PetManifest } from "./pet/types";
 import { baseAnimation } from "./pet/animation";
 import { krobiFrameUrls } from "./pet/frameUrls";

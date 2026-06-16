@@ -1,5 +1,5 @@
 // Vite가 빌드 시 각 PNG를 URL로 변환해 eager 로드한다.
-const modules = import.meta.glob("../assets/pets/krobi/*.png", {
+const modules = import.meta.glob("../assets/pets/krobi/stage1/*.png", {
   eager: true,
   query: "?url",
   import: "default",
