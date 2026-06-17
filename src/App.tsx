@@ -70,6 +70,7 @@ function App() {
   const [resizing, setResizing] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
   const [evoPhase, setEvoPhase] = useState<EvoPhase>("idle");
+  const [dragLive, setDragLive] = useState<{ speciesId: string; dx: number; dy: number } | null>(null);
   const evoBoxRef = useRef<[number, number, number, number] | null>(null); // 진화 전 창 (x,y,w,h)
 
   async function persistAll(data: AppData, lay: LayoutState) {
@@ -196,7 +197,11 @@ function App() {
       .map((slot) => {
         const pos = layout.positions.find((p) => p.speciesId === slot.speciesId);
         const size = sizes[slot.speciesId];
-        return pos && size ? { x: pos.x, y: pos.y, w: size.w, h: size.h } : null;
+        if (!pos || !size) return null;
+        const live = dragLive && dragLive.speciesId === slot.speciesId ? dragLive : null;
+        const x = live ? pos.x + live.dx : pos.x;
+        const y = live ? pos.y + live.dy : pos.y;
+        return { x, y, w: size.w, h: size.h };
       })
       .filter((r): r is Rect => r !== null);
     if (rects.length === 0 || rects.length !== appData.slots.length) return; // 아직 전부 준비 안 됨
@@ -207,7 +212,7 @@ function App() {
     const height = fitted.height + (showStatus ? PANEL_H : 0);
     void getCurrentWindow().setSize(new LogicalSize(width, height));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slotsKey, layout, sizes, showStatus]);
+  }, [slotsKey, layout, sizes, showStatus, dragLive]);
 
   function feedAction(speciesId: string) {
     setOneShots((prev) => ({ ...prev, [speciesId]: "eat" }));
@@ -309,6 +314,7 @@ function App() {
   }
 
   function handleDrop(speciesId: string, dx: number, dy: number) {
+    setDragLive(null);
     if (!appData) return;
     const pos = layout.positions.find((p) => p.speciesId === speciesId);
     const size = sizes[speciesId];
@@ -390,6 +396,7 @@ function App() {
             onContextMenu={() => {
               if (!resizing) void showMenu(slot.speciesId);
             }}
+            onDragLive={(dx, dy) => setDragLive({ speciesId: slot.speciesId, dx, dy })}
             onDrop={(dx, dy) => handleDrop(slot.speciesId, dx, dy)}
           />
         );

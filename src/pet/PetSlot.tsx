@@ -24,6 +24,7 @@ export function PetSlot({
   onSizeReady,
   onClick,
   onContextMenu,
+  onDragLive,
   onDrop,
 }: {
   speciesId: string;
@@ -39,6 +40,7 @@ export function PetSlot({
   onSizeReady: (w: number, h: number) => void;
   onClick: () => void;
   onContextMenu: () => void;
+  onDragLive: (dx: number, dy: number) => void;
   onDrop: (dx: number, dy: number) => void;
 }) {
   // 실제 폼 에셋이 없으면 그 종의 stage1 로 대체(기존 단일-종 placeholder 동작을 종별로 일반화).
@@ -73,16 +75,27 @@ export function PetSlot({
 
   const [liveOffset, setLiveOffset] = useState({ dx: 0, dy: 0 });
   const [dragging, setDragging] = useState(false);
+  // 왼쪽/위쪽으로는 현재 창 경계(originOffset - margin)까지만 끌리게 막는다 — 창은 setSize 로만
+  // 커지므로(오른쪽/아래쪽 성장만 가능) 그 방향은 막지 않으면 펫이 창 밖으로 보이지 않게 된다.
+  function clamp(dx: number, dy: number) {
+    const minDx = originOffset.x - margin - position.x;
+    const minDy = originOffset.y - margin - position.y;
+    return { dx: Math.max(dx, minDx), dy: Math.max(dy, minDy) };
+  }
+
   const drag = usePetDrag(
     onClick,
     (dx, dy) => {
+      const c = clamp(dx, dy);
       setDragging(true);
-      setLiveOffset({ dx, dy });
+      setLiveOffset(c);
+      onDragLive(c.dx, c.dy);
     },
     (dx, dy) => {
+      const c = clamp(dx, dy);
       setDragging(false);
       setLiveOffset({ dx: 0, dy: 0 });
-      onDrop(dx, dy);
+      onDrop(c.dx, c.dy);
     },
   );
 
