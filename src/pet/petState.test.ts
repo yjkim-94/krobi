@@ -22,11 +22,12 @@ describe("migrate", () => {
     expect(p.status.satiety).toBe(100);
   });
 
-  it("carries old satiety/hunger and drops legacy level", () => {
+  it("carries old satiety/hunger, drops legacy level/name", () => {
     const p = migrate({ name: "x", level: 3, status: { hunger: 42 }, last_updated: "t" });
-    expect(p.name).toBe("x");
     expect(p.status.satiety).toBe(42);
     expect(p.form).toBe("stage1");
+    expect(p.last_updated).toBe("t");
+    expect((p as Record<string, unknown>).name).toBeUndefined();
   });
 });
 

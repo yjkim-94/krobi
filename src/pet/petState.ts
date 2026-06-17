@@ -5,7 +5,6 @@ export type Tendencies = Record<TendencyKey, number>;
 export type Status = { satiety: number };
 
 export type PetData = {
-  name: string;
   form: string; // 현재 폼 키 ("stage1" | "stage2-maker" ...)
   status: Status;
   exp: number; // 시간으로 증가, 진화 시 0
@@ -20,7 +19,6 @@ const clampMin0 = (v: number) => Math.max(0, v);
 
 export function defaultPet(): PetData {
   return {
-    name: "크롬비",
     form: "stage1",
     status: { satiety: 100 },
     exp: 0,
@@ -45,7 +43,6 @@ export function migrate(raw: unknown): PetData {
   const t = (r.tendencies ?? {}) as Record<string, unknown>;
   const num = (v: unknown) => (typeof v === "number" ? v : 0);
   return {
-    name: typeof r.name === "string" ? r.name : base.name,
     form: typeof r.form === "string" ? r.form : base.form,
     status: { satiety },
     exp: typeof r.exp === "number" ? r.exp : 0,
