@@ -41,3 +41,6 @@ src/assets/pets/_incoming
 
 # Brainstorming companion
 .superpowers
+
+# Git worktrees (isolated workspaces for implementation work)
+.worktrees
