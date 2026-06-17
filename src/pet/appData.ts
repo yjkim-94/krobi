@@ -1,5 +1,5 @@
 import type { SpeciesDef } from "./types";
-import { defaultPet, migrate as migratePetData, type PetData } from "./petState";
+import { migrate as migratePetData, type PetData } from "./petState";
 
 export type SpeciesInstance = PetData;
 
