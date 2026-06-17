@@ -14,7 +14,7 @@ import { PetSlot } from "./pet/PetSlot";
 import { defaultPosition, resolveDropPosition, layoutBounds, type LayoutState, type Rect } from "./pet/layout";
 import { getSpeciesDef } from "./pet/speciesRegistry";
 import { migrateAppData, type AppData } from "./pet/appData";
-import { applyTickAll, evolveSpecies, resetSpecies, feedSpecies } from "./pet/appDataOps";
+import { applyTickAll, evolveSpecies, resetSpecies, feedSpecies, setDisplayForm } from "./pet/appDataOps";
 import { canEvolve } from "./pet/petState";
 import { StatusPanel } from "./ui/StatusPanel";
 import { EvolutionFx, type EvoPhase } from "./ui/EvolutionFx";
@@ -222,7 +222,8 @@ function App() {
   function resetAction(speciesId: string) {
     setAppData((prev) => {
       if (!prev) return prev;
-      const next = resetSpecies(prev, speciesId);
+      const reset = resetSpecies(prev, speciesId);
+      const next = setDisplayForm(reset, speciesId, "stage1");
       void persistAll(next, layoutRef.current);
       return next;
     });
@@ -263,8 +264,9 @@ function App() {
       setEvoPhase("flash");
       setAppData((prev) => {
         if (!prev) return prev;
-        const next = evolveSpecies(prev, speciesId, species);
-        if (next === prev) return prev;
+        const evolved = evolveSpecies(prev, speciesId, species);
+        if (evolved === prev) return prev;
+        const next = setDisplayForm(evolved, speciesId, evolved.pets[speciesId].instance.form);
         void persistAll(next, layoutRef.current);
         return next;
       });
