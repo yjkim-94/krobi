@@ -95,6 +95,12 @@ align the columns vertically across all rows. Do NOT bunch frames together, do N
 cells or large gaps mid-row, and do NOT vary the spacing within a row. Keep equal margins on
 all four sides; no frame may touch a canvas edge. The result must look like a machine-cut
 grid, ready for automatic frame extraction.
+**Column gap (critical, even at peak poses)** — Leave a clearly visible solid-background gap
+of at least 15% of the cell width between every adjacent pair of frames in a row, including
+frames where the pose is widest (arms raised, parts expanded, peak stretch/squash). Shrink the
+creature slightly within its cell if needed so its widest pose never touches or overlaps the
+neighboring cell. No two frames may ever be visually connected by touching pixels — each frame
+must extract as one fully separate, disconnected blob.
 **Size lock** — Draw the creature at the same pixel footprint in every single frame: its width
 and height stay within ~10% across all frames. The ONLY allowed shape change is the
 squash/stretch described in the motion; never zoom, change camera distance, or make some

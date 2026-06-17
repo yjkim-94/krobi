@@ -135,6 +135,17 @@ enforced):
   or palette.
 - **Signature prop:** if the branch has a defining prop (maker's hammer, etc.), mark it
   MANDATORY in every frame so a re-roll can't drop it.
+- **Signature prop + limb lock (prevents phantom extra limbs):** when a prop must be held
+  AND the row's motion calls for "raised arms" / "free gesture" / a hand busy with food, the
+  model will often invent an extra arm rather than leave the prop hand idle. Prevent this by
+  explicitly locking anatomy in the `**Creature**` line: state the exact limb count (e.g.
+  "exactly two arms, never more"), name WHICH limb holds the prop permanently (e.g. "the RIGHT
+  arm always grips the hammer, low and still, never raised, never let go"), and name WHICH
+  limb is the only one free to move/gesture/hold other items (e.g. "the LEFT arm is the only
+  free limb"). Then repeat the prop-holding limb's fixed role in every row block (idle/eat/
+  happy/sad) that could tempt a free-gesture or two-handed pose, and call out explicitly in any
+  row needing both hands free (e.g. eating) that the OTHER (free) limb does it alone, never a
+  third limb.
 - Some models (e.g. Gemini) stamp a corner logo/watermark; the closing `**Never** include`
   line already forbids `logos, watermarks, signatures`. A corner mark outside the creature
   silhouette is usually dropped by the per-frame content crop anyway.
@@ -157,26 +168,26 @@ Per-form reference image:
 - **stage2-X:** that species' `stage1/idle_0.png`.
 - **stage3-X:** that species' `stage2-X/idle_0.png`.
 
-**Persist the prompt — two files:**
+**Persist the prompt.** Write `src/assets/pets/<species>/<form>/prompt.md` containing ONLY the
+single full-sheet prompt in one self-contained fenced block (Sheet layout block + full Style
+Bible with filled `**Creature**` line + Reference line + §4 Sheet discipline block + the four
+row blocks + the closing `**Never** include` line). No workflow text in this file. Write it in
+English. This file is also the generator's input directly — `tools/gen_image.py` strips the
+fence automatically, so there is no separate plain-text copy to maintain.
 
-1. **Form folder (committed):** Write `src/assets/pets/<species>/<form>/prompt.md` containing
-   ONLY the single full-sheet prompt in one self-contained fenced block (Sheet layout block +
-   full Style Bible with filled `**Creature**` line + Reference line + §4 Sheet discipline block +
-   the four row blocks + the closing `**Never** include` line). No workflow text in this file.
-   Write it in English.
+**If you are revising the prompt after a Step 5 gate failure** (e.g. fixing a spacing or
+signature-prop issue), edit `prompt.md` in place — it is the single source of truth read by
+both the human and `gen_image.py`. Never edit a separate scratch copy.
 
-2. **Generator input (gitignored):** Write the same prompt as plain text (no fencing, no markdown)
-   to `tools/prompts/<species>_<form>.txt`.
-
-**Approval gate:** Show the user the full prompt (the same content written to `prompt.md`)
-and the planned command below. Wait for the user to approve or request edits. Do NOT run
-the command until they approve. Once approved, run Steps 3 (generation) through 7
-(species.json/catalog.json) yourself without further manual handoff — only stop early if
-the Step 5 gate fails repeatedly or something is ambiguous enough to need the user's input.
+**Approval gate:** Show the user the full prompt (the same content in `prompt.md`) and the
+planned command below. Wait for the user to approve or request edits. Do NOT run the command
+until they approve. Once approved, run Steps 3 (generation) through 7 (species.json/
+catalog.json) yourself without further manual handoff — only stop early if the Step 5 gate
+fails repeatedly or something is ambiguous enough to need the user's input.
 
 ```
 tools/venv/bin/python tools/gen_image.py \
-  tools/prompts/<species>_<form>.txt \
+  src/assets/pets/<species>/<form>/prompt.md \
   --out src/assets/pets/_incoming/<species>_<form>_sheet.png \
   --ref <per-form reference image path from the table above>
 ```

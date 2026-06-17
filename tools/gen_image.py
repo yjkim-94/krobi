@@ -21,11 +21,19 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Generate a pet sprite sheet image")
-    p.add_argument("prompt_file", help="Path to plain-text file with the full prompt")
+    p.add_argument("prompt_file", help="Path to the prompt file (plain text, or a .md file with the prompt in one fenced code block)")
     p.add_argument("--out", required=True, help="Output PNG path (e.g. src/assets/pets/_incoming/species_form_sheet.png)")
     p.add_argument("--size", default="1536x1024", help="Image dimensions WxH (default: 1536x1024)")
     p.add_argument("--ref", default=None, help="Reference image path for style/identity consistency")
     return p
+
+
+def _strip_markdown_fence(text: str) -> str:
+    """If text is wrapped in a single ``` ... ``` fenced block, return only the inner content."""
+    lines = text.strip().splitlines()
+    if len(lines) >= 2 and lines[0].startswith("```") and lines[-1].strip() == "```":
+        return "\n".join(lines[1:-1]).strip()
+    return text.strip()
 
 
 def generate(prompt: str, size: str, ref: str | None, out: str) -> None:
@@ -52,7 +60,7 @@ def main() -> None:
     args = _build_parser().parse_args()
 
     with open(args.prompt_file) as f:
-        prompt = f.read().strip()
+        prompt = _strip_markdown_fence(f.read())
 
     if not prompt:
         sys.exit(f"Prompt file is empty: {args.prompt_file}")

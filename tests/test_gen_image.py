@@ -64,6 +64,25 @@ class TestGenerate(unittest.TestCase):
             mock_client.images.generate.assert_not_called()
 
 
+class TestStripMarkdownFence(unittest.TestCase):
+    def setUp(self):
+        import tools.gen_image as m
+        importlib.reload(m)
+        self.m = m
+
+    def test_strips_fenced_block(self):
+        text = "```\nhello\nworld\n```"
+        self.assertEqual(self.m._strip_markdown_fence(text), "hello\nworld")
+
+    def test_strips_fenced_block_with_language_tag(self):
+        text = "```text\nhello\nworld\n```"
+        self.assertEqual(self.m._strip_markdown_fence(text), "hello\nworld")
+
+    def test_plain_text_unchanged(self):
+        text = "hello\nworld"
+        self.assertEqual(self.m._strip_markdown_fence(text), "hello\nworld")
+
+
 class TestOutputDir(unittest.TestCase):
     def test_output_dir_created(self):
         import tools.gen_image as m

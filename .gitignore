@@ -33,9 +33,6 @@ tools/venv
 __pycache__/
 *.pyc
 
-# Ephemeral prompt files for gen_image.py
-tools/prompts/
-
 # API key for gen_image.py (never commit)
 tools/.env
 
