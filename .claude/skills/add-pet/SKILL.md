@@ -134,7 +134,14 @@ enforced):
   tan, or grey stone"). The dramatic stage3 change is in SILHOUETTE/structure, never in element
   or palette.
 - **Signature prop:** if the branch has a defining prop (maker's hammer, etc.), mark it
-  MANDATORY in every frame so a re-roll can't drop it.
+  MANDATORY in every frame so a re-roll can't drop it. Don't just state this once near the
+  prop's introduction — repeat the "appears in every single frame, never omitted/knocked
+  off/hidden" requirement explicitly for the row most likely to drop it. The eat row is the
+  riskiest for any face-worn prop (glasses, a mask, headwear): mouth/cheek movement and
+  head-lean during chewing make the model forget it, so call out by name in the `**Creature**`
+  line that the prop "stays on through all 8 eat frames even while the mouth opens, chews, and
+  the head leans in/out" — the same pattern as the limb-lock below, but for the face instead of
+  a limb.
 - **Signature prop + limb lock (prevents phantom extra limbs):** when a prop must be held
   AND the row's motion calls for "raised arms" / "free gesture" / a hand busy with food, the
   model will often invent an extra arm rather than leave the prop hand idle. Prevent this by

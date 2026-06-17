@@ -67,6 +67,16 @@ per-frame motion (and, for evolutions, gradual added detail) changes.
   (Never produce a causally reversed order, such as slashing before drawing.)
 - When generating a sequential-action strip, **attach the previous frame as reference** to
   keep pose continuity.
+- **Per-frame element continuity**: any element that changes progressively across a row's 8
+  frames (food being eaten, a tear falling, a wound, a meter, a prop being assembled) must
+  change monotonically in ONE direction only, from a single fixed origin point/edge — e.g. a
+  bite notch only grows from the same edge, never appears on a different edge or regrows; a
+  tear only falls straight down from the same point under the eye, never resets or jumps
+  sideways. Never let such an element fully disappear and then reappear, regress to an
+  earlier state, or jump discontinuously between frames. State this explicitly per element in
+  the row block (see the eat/sad row blocks in `references/animation-prompts.md` for the
+  pattern) — a generic "shrinks"/"falls" instruction is not enough to stop the model from
+  drifting.
 
 ## 3. Evolution continuity rules (evolution formula)
 

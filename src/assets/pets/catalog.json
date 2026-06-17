@@ -8,6 +8,15 @@
       "claimedMotifs": ["용암", "마그마 균열", "불씨"],
       "claimedColors": ["브릭 레드", "엠버 오렌지", "골드"],
       "branches": ["maker", "sage", "wild"]
+    },
+    {
+      "id": "mochi",
+      "displayName": "모치",
+      "archetype": "beast",
+      "concept": "마시멜로처럼 동글동글한 크림색 새끼고양이, 분홍 발바닥과 베이지 무늬",
+      "claimedMotifs": ["마시멜로", "솜털", "고양이"],
+      "claimedColors": ["크림 화이트", "페일 핑크", "라이트 베이지"],
+      "branches": ["maker", "sage", "wild"]
     }
   ]
 }
