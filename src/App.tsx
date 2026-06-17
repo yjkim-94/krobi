@@ -351,6 +351,13 @@ function App() {
   const bounds = layoutBounds(rects);
   const originOffset = bounds ? { x: bounds.minX, y: bounds.minY } : { x: 0, y: 0 };
 
+  const focusedPos = focusedSpeciesId ? layout.positions.find((p) => p.speciesId === focusedSpeciesId) : undefined;
+  const focusedSize = focusedSpeciesId ? sizes[focusedSpeciesId] : undefined;
+  const focusedAnchor =
+    focusedPos && focusedSize
+      ? { x: focusedPos.x - originOffset.x + MARGIN, y: focusedPos.y - originOffset.y + MARGIN, width: focusedSize.w }
+      : null;
+
   return (
     <div
       onMouseDown={backgroundDrag.onMouseDown}
@@ -360,7 +367,11 @@ function App() {
       style={{ userSelect: "none", paddingTop: showStatus ? PANEL_H : 0 }}
     >
       {showStatus && focusedSpeciesId && appData.pets[focusedSpeciesId] && getSpeciesDef(focusedSpeciesId) && (
-        <StatusPanel pet={appData.pets[focusedSpeciesId].instance} species={getSpeciesDef(focusedSpeciesId)!} />
+        <StatusPanel
+          pet={appData.pets[focusedSpeciesId].instance}
+          species={getSpeciesDef(focusedSpeciesId)!}
+          anchor={focusedAnchor}
+        />
       )}
 
       <EvolutionFx phase={evoPhase} />
