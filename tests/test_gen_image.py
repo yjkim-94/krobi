@@ -1,15 +1,14 @@
-import argparse
+import importlib
 import os
 import sys
 import unittest
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import patch, mock_open
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 class TestArgParsing(unittest.TestCase):
     def _parse(self, args):
-        import importlib
         import tools.gen_image as m
         importlib.reload(m)
         parser = m._build_parser()
@@ -23,47 +22,50 @@ class TestArgParsing(unittest.TestCase):
     def test_defaults(self):
         args = self._parse(["p.txt", "--out", "o.png"])
         self.assertEqual(args.size, "1536x1024")
-        self.assertEqual(args.backend, "oauth")
         self.assertIsNone(args.ref)
-
-    def test_backend_choices(self):
-        args = self._parse(["p.txt", "--out", "o.png", "--backend", "api"])
-        self.assertEqual(args.backend, "api")
-
-    def test_invalid_backend_exits(self):
-        with self.assertRaises(SystemExit):
-            self._parse(["p.txt", "--out", "o.png", "--backend", "bad"])
 
     def test_missing_out_exits(self):
         with self.assertRaises(SystemExit):
             self._parse(["p.txt"])
 
 
-class TestGenerateRouting(unittest.TestCase):
+class TestGenerate(unittest.TestCase):
     def setUp(self):
-        import importlib
         import tools.gen_image as m
         importlib.reload(m)
         self.m = m
 
-    def test_oauth_backend_called(self):
-        with patch.object(self.m, "_chatgpt_oauth") as mock_oauth:
-            self.m.generate("prompt", "1536x1024", None, "oauth", "out.png")
-            mock_oauth.assert_called_once_with("prompt", "1536x1024", "out.png")
+    def test_generate_without_ref_calls_images_generate(self):
+        with patch.object(self.m.openai, "OpenAI") as mock_openai_cls, \
+             patch("builtins.open", mock_open()):
+            mock_client = mock_openai_cls.return_value
+            mock_client.images.generate.return_value.data = [
+                type("Obj", (), {"b64_json": "AAAA"})()
+            ]
+            self.m.generate("prompt", "1536x1024", None, "out.png")
+            mock_client.images.generate.assert_called_once_with(
+                model="gpt-image-2", prompt="prompt", size="1536x1024"
+            )
+            mock_client.images.edit.assert_not_called()
 
-    def test_api_backend_called(self):
-        with patch.object(self.m, "_openai_api") as mock_api:
-            self.m.generate("prompt", "1536x1024", "ref.png", "api", "out.png")
-            mock_api.assert_called_once_with("prompt", "1536x1024", "ref.png", "out.png")
-
-    def test_unknown_backend_exits(self):
-        with self.assertRaises(SystemExit):
-            self.m.generate("prompt", "1536x1024", None, "unknown", "out.png")
+    def test_generate_with_ref_calls_images_edit(self):
+        with patch.object(self.m.openai, "OpenAI") as mock_openai_cls, \
+             patch("builtins.open", mock_open(read_data=b"fakeimg")):
+            mock_client = mock_openai_cls.return_value
+            mock_client.images.edit.return_value.data = [
+                type("Obj", (), {"b64_json": "AAAA"})()
+            ]
+            self.m.generate("prompt", "1536x1024", "ref.png", "out.png")
+            mock_client.images.edit.assert_called_once()
+            _, kwargs = mock_client.images.edit.call_args
+            self.assertEqual(kwargs["model"], "gpt-image-2")
+            self.assertEqual(kwargs["prompt"], "prompt")
+            self.assertEqual(kwargs["size"], "1536x1024")
+            mock_client.images.generate.assert_not_called()
 
 
 class TestOutputDir(unittest.TestCase):
     def test_output_dir_created(self):
-        import importlib
         import tools.gen_image as m
         importlib.reload(m)
 

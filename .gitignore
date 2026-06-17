@@ -36,6 +36,9 @@ __pycache__/
 # Ephemeral prompt files for gen_image.py
 tools/prompts/
 
+# API key for gen_image.py (never commit)
+tools/.env
+
 # Asset working area (나노바나나 원본 투입구 / 미리보기)
 src/assets/pets/_incoming
 

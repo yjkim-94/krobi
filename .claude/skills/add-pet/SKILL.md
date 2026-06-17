@@ -173,14 +173,12 @@ Per-form reference image:
 ```
 tools/venv/bin/python tools/gen_image.py \
   tools/prompts/<species>_<form>.txt \
-  --out src/assets/pets/_incoming/<species>_<form>_sheet.png
+  --out src/assets/pets/_incoming/<species>_<form>_sheet.png \
+  --ref <per-form reference image path from the table above>
 ```
 
-Note: The OAuth backend does not attach the reference image automatically — style consistency
-relies on the palette lock and creature description in the prompt. For stage2/3, the prompt's
-`**Creature**` line must already contain the explicit palette and silhouette constraints.
-When switching to `--backend api` with `OPENAI_API_KEY`, add `--ref <previous_stage_idle_0.png>`
-to activate reference-image consistency.
+Requires `OPENAI_API_KEY` set in `tools/.env` (gitignored) or the environment.
+Omit `--ref` for stage1 (no reference image chosen yet).
 
 After running, come back here when the PNG appears in `_incoming/` — then continue with Step 4.
 
