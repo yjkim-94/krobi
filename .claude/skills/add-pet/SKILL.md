@@ -168,7 +168,11 @@ Per-form reference image:
 2. **Generator input (gitignored):** Write the same prompt as plain text (no fencing, no markdown)
    to `tools/prompts/<species>_<form>.txt`.
 
-**Then tell the user (in chat) to run:**
+**Approval gate:** Show the user the full prompt (the same content written to `prompt.md`)
+and the planned command below. Wait for the user to approve or request edits. Do NOT run
+the command until they approve. Once approved, run Steps 3 (generation) through 7
+(species.json/catalog.json) yourself without further manual handoff — only stop early if
+the Step 5 gate fails repeatedly or something is ambiguous enough to need the user's input.
 
 ```
 tools/venv/bin/python tools/gen_image.py \
@@ -178,9 +182,8 @@ tools/venv/bin/python tools/gen_image.py \
 ```
 
 Requires `OPENAI_API_KEY` set in `tools/.env` (gitignored) or the environment.
-Omit `--ref` for stage1 (no reference image chosen yet).
-
-After running, come back here when the PNG appears in `_incoming/` — then continue with Step 4.
+Omit `--ref` for stage1 (no reference image chosen yet). Run it yourself; proceed straight
+to Step 4 once the PNG appears in `_incoming/`.
 
 ### Step 4 — Build the form folder (extract → manifest → pack)
 
@@ -224,8 +227,9 @@ fallback (regenerating one row alone → `extract_sprites.py … --rows 1 --cols
 transparent background, and the §4 Sheet discipline contract: **scale variation ≤10%, fixed
 baseline (no sideways drift), FX not detached, any food/prop attached (not a separate blob),
 and frame 1 ≈ frame 8 resting pose**, and identity consistent with the reference. If wrong,
-tune `--tol` and re-run, or ask the user to regenerate with clearer spacing / corrected order
-(or, for happy, the wrong body-form motion). When it passes, finalize with Step 4 step 2
+tune `--tol` and re-run yourself first. Only fall back to asking the user to regenerate
+(clearer spacing / corrected order / wrong body-form motion) if a couple of `--tol` retries
+don't fix it. When it passes, finalize with Step 4 step 2
 (without `--no-pack`).
 
 ### Step 6 — Write/update species.json and catalog.json
