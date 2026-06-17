@@ -29,6 +29,10 @@ src-tauri/target
 # Python asset tooling env
 tools/venv
 
+# Python bytecode
+__pycache__/
+*.pyc
+
 # Ephemeral prompt files for gen_image.py
 tools/prompts/
 

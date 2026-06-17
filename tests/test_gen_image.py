@@ -69,7 +69,7 @@ class TestOutputDir(unittest.TestCase):
 
         with patch.object(m, "generate"), \
              patch("builtins.open", mock_open(read_data="some prompt")), \
-             patch("os.makedirs") as mock_makedirs:
+             patch("tools.gen_image.os.makedirs") as mock_makedirs:
             sys.argv = ["gen_image.py", "p.txt", "--out", "a/b/c.png"]
             try:
                 m.main()
