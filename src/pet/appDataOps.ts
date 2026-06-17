@@ -70,3 +70,23 @@ export function setDisplayForm(data: AppData, speciesId: string, form: string): 
   slots[idx] = { ...slots[idx], displayForm: form };
   return { ...data, slots };
 }
+
+export function feedSpecies(data: AppData, speciesId: string, amount = 20): AppData {
+  const progress = data.pets[speciesId];
+  if (!progress) return data;
+  const satiety = Math.min(100, progress.instance.status.satiety + amount);
+  return {
+    ...data,
+    pets: {
+      ...data.pets,
+      [speciesId]: {
+        ...progress,
+        instance: {
+          ...progress.instance,
+          status: { satiety },
+          last_updated: new Date().toISOString(),
+        },
+      },
+    },
+  };
+}

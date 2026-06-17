@@ -3,7 +3,7 @@ import type { SpeciesDef } from "./types";
 import type { AppData } from "./appData";
 import krombiSpecies from "../assets/pets/krombi/species.json";
 import { migrateAppData } from "./appData";
-import { applyTickAll, evolveSpecies, resetSpecies, acquireSpecies, addSlot, hideSlot, setDisplayForm } from "./appDataOps";
+import { applyTickAll, evolveSpecies, resetSpecies, acquireSpecies, addSlot, hideSlot, setDisplayForm, feedSpecies } from "./appDataOps";
 
 const krombi = krombiSpecies as SpeciesDef;
 
@@ -156,5 +156,38 @@ describe("setDisplayForm", () => {
   it("is a no-op if the species has no active slot", () => {
     const data = withTwoSpecies(); // mochi owned but not in slots
     expect(setDisplayForm(data, "mochi", "stage1")).toEqual(data);
+  });
+});
+
+describe("feedSpecies", () => {
+  it("increases satiety by the given amount", () => {
+    const data = withTwoSpecies();
+    const lowered = {
+      ...data,
+      pets: { ...data.pets, krombi: { ...data.pets.krombi, instance: { ...data.pets.krombi.instance, status: { satiety: 50 } } } },
+    };
+    const next = feedSpecies(lowered, "krombi", 20);
+    expect(next.pets.krombi.instance.status.satiety).toBe(70);
+  });
+
+  it("clamps satiety at 100", () => {
+    const data = withTwoSpecies();
+    const next = feedSpecies(data, "krombi", 20); // starts at 100 via defaultPet()
+    expect(next.pets.krombi.instance.status.satiety).toBe(100);
+  });
+
+  it("defaults amount to 20", () => {
+    const data = withTwoSpecies();
+    const lowered = {
+      ...data,
+      pets: { ...data.pets, krombi: { ...data.pets.krombi, instance: { ...data.pets.krombi.instance, status: { satiety: 50 } } } },
+    };
+    const next = feedSpecies(lowered, "krombi");
+    expect(next.pets.krombi.instance.status.satiety).toBe(70);
+  });
+
+  it("is a no-op for an unowned species", () => {
+    const data = withTwoSpecies();
+    expect(feedSpecies(data, "nope")).toEqual(data);
   });
 });
