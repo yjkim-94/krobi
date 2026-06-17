@@ -29,6 +29,9 @@ src-tauri/target
 # Python asset tooling env
 tools/venv
 
+# Ephemeral prompt files for gen_image.py
+tools/prompts/
+
 # Asset working area (나노바나나 원본 투입구 / 미리보기)
 src/assets/pets/_incoming
 
