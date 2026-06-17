@@ -39,3 +39,34 @@ export function resetSpecies(data: AppData, speciesId: string): AppData {
     pets: { ...data.pets, [speciesId]: { ...progress, instance: defaultPet() } },
   };
 }
+
+export function acquireSpecies(data: AppData, speciesId: string): AppData {
+  if (data.pets[speciesId]) return data;
+  const instance = defaultPet();
+  return {
+    ...data,
+    pets: { ...data.pets, [speciesId]: { unlockedForms: [instance.form], instance } },
+  };
+}
+
+export function addSlot(data: AppData, speciesId: string): AppData {
+  const progress = data.pets[speciesId];
+  if (!progress) return data;
+  if (data.slots.some((s) => s.speciesId === speciesId)) return data;
+  return { ...data, slots: [...data.slots, { speciesId, displayForm: progress.instance.form }] };
+}
+
+export function hideSlot(data: AppData, speciesId: string): AppData {
+  if (data.slots.length <= 1) return data;
+  return { ...data, slots: data.slots.filter((s) => s.speciesId !== speciesId) };
+}
+
+export function setDisplayForm(data: AppData, speciesId: string, form: string): AppData {
+  const progress = data.pets[speciesId];
+  if (!progress || !progress.unlockedForms.includes(form)) return data;
+  const idx = data.slots.findIndex((s) => s.speciesId === speciesId);
+  if (idx === -1) return data;
+  const slots = [...data.slots];
+  slots[idx] = { ...slots[idx], displayForm: form };
+  return { ...data, slots };
+}

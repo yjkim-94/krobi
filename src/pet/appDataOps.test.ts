@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { SpeciesDef } from "./types";
+import type { AppData } from "./appData";
 import krombiSpecies from "../assets/pets/krombi/species.json";
 import { migrateAppData } from "./appData";
-import { applyTickAll, evolveSpecies, resetSpecies } from "./appDataOps";
+import { applyTickAll, evolveSpecies, resetSpecies, acquireSpecies, addSlot, hideSlot, setDisplayForm } from "./appDataOps";
 
 const krombi = krombiSpecies as SpeciesDef;
 
-function withTwoSpecies() {
+function withTwoSpecies(): AppData {
   const data = migrateAppData(undefined, krombi); // krombi owned + slotted
   return {
     ...data,
@@ -80,5 +81,80 @@ describe("resetSpecies", () => {
   it("is a no-op for an unowned species", () => {
     const data = withTwoSpecies();
     expect(resetSpecies(data, "nope")).toEqual(data);
+  });
+});
+
+describe("acquireSpecies", () => {
+  it("adds a new species at stage1, unowned -> owned", () => {
+    const data = migrateAppData(undefined, krombi); // krombi only
+    const next = acquireSpecies(data, "mochi");
+    expect(next.pets.mochi.unlockedForms).toEqual(["stage1"]);
+    expect(next.pets.mochi.instance.form).toBe("stage1");
+    expect(next.slots).toEqual(data.slots); // acquiring does not display it
+  });
+
+  it("is a no-op if already owned", () => {
+    const data = withTwoSpecies();
+    expect(acquireSpecies(data, "mochi")).toEqual(data);
+  });
+});
+
+describe("addSlot", () => {
+  it("adds an owned, not-yet-shown species to slots", () => {
+    const data = withTwoSpecies(); // mochi owned but hidden
+    const next = addSlot(data, "mochi");
+    expect(next.slots).toEqual([
+      { speciesId: "krombi", displayForm: "stage1" },
+      { speciesId: "mochi", displayForm: "stage1" },
+    ]);
+  });
+
+  it("is a no-op if the species is unowned", () => {
+    const data = migrateAppData(undefined, krombi); // mochi not owned
+    expect(addSlot(data, "mochi")).toEqual(data);
+  });
+
+  it("is a no-op if the species is already shown", () => {
+    const data = withTwoSpecies();
+    expect(addSlot(data, "krombi")).toEqual(data);
+  });
+});
+
+describe("hideSlot", () => {
+  it("removes a slot when more than one is shown", () => {
+    const data = addSlot(withTwoSpecies(), "mochi");
+    const next = hideSlot(data, "mochi");
+    expect(next.slots).toEqual([{ speciesId: "krombi", displayForm: "stage1" }]);
+  });
+
+  it("is a no-op when it would leave slots empty", () => {
+    const data = migrateAppData(undefined, krombi); // only krombi shown
+    expect(hideSlot(data, "krombi")).toEqual(data);
+  });
+});
+
+describe("setDisplayForm", () => {
+  it("changes a slot's displayForm without touching the instance", () => {
+    const base = withTwoSpecies();
+    const data = {
+      ...base,
+      pets: {
+        ...base.pets,
+        krombi: { unlockedForms: ["stage1", "stage2-sage", "stage3-sage"], instance: { ...base.pets.krombi.instance, form: "stage3-sage" } },
+      },
+    };
+    const next = setDisplayForm(data, "krombi", "stage1");
+    expect(next.slots[0]).toEqual({ speciesId: "krombi", displayForm: "stage1" });
+    expect(next.pets.krombi.instance.form).toBe("stage3-sage"); // progress unaffected
+  });
+
+  it("is a no-op if the form was never unlocked", () => {
+    const data = withTwoSpecies();
+    expect(setDisplayForm(data, "krombi", "stage3-wild")).toEqual(data);
+  });
+
+  it("is a no-op if the species has no active slot", () => {
+    const data = withTwoSpecies(); // mochi owned but not in slots
+    expect(setDisplayForm(data, "mochi", "stage1")).toEqual(data);
   });
 });
