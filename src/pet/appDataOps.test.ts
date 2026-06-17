@@ -3,7 +3,18 @@ import type { SpeciesDef } from "./types";
 import type { AppData } from "./appData";
 import krombiSpecies from "../assets/pets/krombi/species.json";
 import { migrateAppData } from "./appData";
-import { applyTickAll, evolveSpecies, resetSpecies, acquireSpecies, addSlot, hideSlot, setDisplayForm, feedSpecies } from "./appDataOps";
+import {
+  applyTickAll,
+  evolveSpecies,
+  resetSpecies,
+  acquireSpecies,
+  addSlot,
+  hideSlot,
+  setDisplayForm,
+  feedSpecies,
+  evolveAndSync,
+  resetAndSync,
+} from "./appDataOps";
 
 const krombi = krombiSpecies as SpeciesDef;
 
@@ -189,5 +200,54 @@ describe("feedSpecies", () => {
   it("is a no-op for an unowned species", () => {
     const data = withTwoSpecies();
     expect(feedSpecies(data, "nope")).toEqual(data);
+  });
+});
+
+describe("evolveAndSync", () => {
+  it("advances the instance AND syncs the slot's displayForm to the new form", () => {
+    const data = withTwoSpecies();
+    const ready = {
+      ...data,
+      pets: {
+        ...data.pets,
+        krombi: {
+          unlockedForms: ["stage1"],
+          instance: { ...data.pets.krombi.instance, exp: 150, tendencies: { maker: 5, sage: 1, wild: 1 } },
+        },
+      },
+    };
+    const next = evolveAndSync(ready, "krombi", krombi);
+    expect(next.pets.krombi.instance.form).toBe("stage2-maker");
+    expect(next.slots.find((s) => s.speciesId === "krombi")?.displayForm).toBe("stage2-maker");
+  });
+
+  it("is a no-op (including no displayForm change) when not eligible to evolve", () => {
+    const data = withTwoSpecies();
+    expect(evolveAndSync(data, "krombi", krombi)).toEqual(data);
+  });
+});
+
+describe("resetAndSync", () => {
+  it("resets the instance to stage1 AND syncs the slot's displayForm to stage1", () => {
+    const data = withTwoSpecies();
+    const grown = {
+      ...data,
+      pets: {
+        ...data.pets,
+        krombi: {
+          unlockedForms: ["stage1", "stage2-sage", "stage3-sage"],
+          instance: { ...data.pets.krombi.instance, form: "stage3-sage", exp: 50 },
+        },
+      },
+      slots: data.slots.map((s) => (s.speciesId === "krombi" ? { ...s, displayForm: "stage3-sage" } : s)),
+    };
+    const next = resetAndSync(grown, "krombi");
+    expect(next.pets.krombi.instance.form).toBe("stage1");
+    expect(next.slots.find((s) => s.speciesId === "krombi")?.displayForm).toBe("stage1");
+  });
+
+  it("is a no-op for an unowned species", () => {
+    const data = withTwoSpecies();
+    expect(resetAndSync(data, "nope")).toEqual(data);
   });
 });

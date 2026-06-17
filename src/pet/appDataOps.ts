@@ -90,3 +90,15 @@ export function feedSpecies(data: AppData, speciesId: string, amount = 20): AppD
     },
   };
 }
+
+export function evolveAndSync(data: AppData, speciesId: string, species: SpeciesDef): AppData {
+  const evolved = evolveSpecies(data, speciesId, species);
+  if (evolved === data) return data;
+  return setDisplayForm(evolved, speciesId, evolved.pets[speciesId].instance.form);
+}
+
+export function resetAndSync(data: AppData, speciesId: string): AppData {
+  const reset = resetSpecies(data, speciesId);
+  if (reset === data) return data;
+  return setDisplayForm(reset, speciesId, "stage1");
+}
