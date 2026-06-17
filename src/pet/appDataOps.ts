@@ -1,0 +1,41 @@
+import type { SpeciesDef } from "./types";
+import { applyTick, canEvolve, applyEvolution, defaultPet } from "./petState";
+import type { AppData } from "./appData";
+
+export function applyTickAll(
+  data: AppData,
+  rates: { satietyRate: number; expGain: number },
+): AppData {
+  const activeIds = new Set(data.slots.map((s) => s.speciesId));
+  const pets = { ...data.pets };
+  for (const id of activeIds) {
+    const progress = pets[id];
+    if (!progress) continue;
+    pets[id] = { ...progress, instance: applyTick(progress.instance, rates) };
+  }
+  return { ...data, pets };
+}
+
+export function evolveSpecies(data: AppData, speciesId: string, species: SpeciesDef): AppData {
+  const progress = data.pets[speciesId];
+  if (!progress) return data;
+  if (!canEvolve(species, progress.instance.form, progress.instance.exp)) return data;
+  const nextInstance = applyEvolution(species, progress.instance);
+  if (nextInstance === progress.instance) return data;
+  const unlockedForms = progress.unlockedForms.includes(nextInstance.form)
+    ? progress.unlockedForms
+    : [...progress.unlockedForms, nextInstance.form];
+  return {
+    ...data,
+    pets: { ...data.pets, [speciesId]: { unlockedForms, instance: nextInstance } },
+  };
+}
+
+export function resetSpecies(data: AppData, speciesId: string): AppData {
+  const progress = data.pets[speciesId];
+  if (!progress) return data;
+  return {
+    ...data,
+    pets: { ...data.pets, [speciesId]: { ...progress, instance: defaultPet() } },
+  };
+}
