@@ -157,25 +157,32 @@ Per-form reference image:
 - **stage2-X:** that species' `stage1/idle_0.png`.
 - **stage3-X:** that species' `stage2-X/idle_0.png`.
 
-Always tell the user (in chat — never in prompt.md):
-- Generate on solid flat magenta `#ff00ff`, render LARGE / high-res.
-- **Attach the per-form reference image** above so identity/silhouette stays consistent.
-- Keep the row order idle → eat → happy → sad and the numbered storyboard order within each
-  row (pet_design.md §2).
-- **Padding:** leave clear margin around the whole grid — no frame may touch any canvas edge,
-  with even spacing between rows and columns and a gap at every end. (Frames touching an edge
-  get clipped on extraction.)
-- Save the result to `src/assets/pets/_incoming/<species>_<form>_sheet.png`
-  (e.g. `ember-pup_stage2-dragon_sheet.png`).
+**Persist the prompt — two files:**
 
-**Persist the prompt to the form folder.** Write `src/assets/pets/<species>/<form>/prompt.md`
-containing ONLY the single paste-ready full-sheet prompt — one self-contained fenced block =
-Sheet layout block + full Style Bible with filled `**Creature**` line + Reference line + §4
-Sheet discipline block + the four row blocks (idle / eat / body-form happy / sad) + the
-closing `**Never** include` line. The user copies the whole block into Nano Banana as-is.
-Do NOT put workflow/operational text in this file (no extract/pack commands, no
-reference-cropping how-to, no "save to _incoming" notes, no header addressing the user —
-those live in this skill / the chat). Write it in English.
+1. **Form folder (committed):** Write `src/assets/pets/<species>/<form>/prompt.md` containing
+   ONLY the single full-sheet prompt in one self-contained fenced block (Sheet layout block +
+   full Style Bible with filled `**Creature**` line + Reference line + §4 Sheet discipline block +
+   the four row blocks + the closing `**Never** include` line). No workflow text in this file.
+   Write it in English.
+
+2. **Generator input (gitignored):** Write the same prompt as plain text (no fencing, no markdown)
+   to `tools/prompts/<species>_<form>.txt`.
+
+**Then tell the user (in chat) to run:**
+
+```
+tools/venv/bin/python tools/gen_image.py \
+  tools/prompts/<species>_<form>.txt \
+  --out src/assets/pets/_incoming/<species>_<form>_sheet.png
+```
+
+Note: The OAuth backend does not attach the reference image automatically — style consistency
+relies on the palette lock and creature description in the prompt. For stage2/3, the prompt's
+`**Creature**` line must already contain the explicit palette and silhouette constraints.
+When switching to `--backend api` with `OPENAI_API_KEY`, add `--ref <previous_stage_idle_0.png>`
+to activate reference-image consistency.
+
+After running, come back here when the PNG appears in `_incoming/` — then continue with Step 4.
 
 ### Step 4 — Build the form folder (extract → manifest → pack)
 
